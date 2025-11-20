@@ -33,7 +33,7 @@ const Landing = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-0">
       {/* Animated Background */}
       <div className="absolute inset-0 z-0 bg-[#0B0B0F]">
         <div className="absolute inset-0 opacity-30">
@@ -61,21 +61,21 @@ const Landing = () => {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
-          <h1 className="text-7xl md:text-[12rem] font-bold mb-8 leading-tight bg-gradient-to-r from-white via-primary to-primary-light bg-clip-text text-transparent animate-fade-in drop-shadow-[0_0_50px_hsl(265_100%_70%_/_0.8)]">
+        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto py-12 md:py-0">
+          <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-[10rem] xl:text-[12rem] font-bold mb-6 md:mb-8 leading-[1.1] bg-gradient-to-r from-white via-primary to-primary-light bg-clip-text text-transparent animate-fade-in drop-shadow-[0_0_50px_hsl(265_100%_70%_/_0.8)]">
             Turn your collection into perpetual Bitcoin royalties
           </h1>
-          <p className="text-2xl md:text-[2.5rem] mb-12 text-white font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed" style={{ animationDelay: '0.2s' }}>
-            Scan anything rare hiding in your house<br />
-            <span className="text-primary/80">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
-            <br /><br />
-            One tap inscribes it forever on BSV<br />
-            You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.
+          <p className="text-base sm:text-lg md:text-2xl lg:text-3xl xl:text-[2.5rem] mb-8 md:mb-12 text-white font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed px-2" style={{ animationDelay: '0.2s' }}>
+            Scan anything rare hiding in your house<br className="hidden sm:block" />
+            <span className="text-primary/80 block mt-2 sm:inline sm:mt-0">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
+            <br /><br className="hidden sm:block" />
+            One tap inscribes it forever on BSV<br className="hidden sm:block" />
+            <span className="block sm:inline mt-2 sm:mt-0">You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.</span>
           </p>
           <Button
             size="lg"
             onClick={() => navigate("/app")}
-            className="text-xl md:text-2xl px-12 py-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-glow transform hover:scale-105 transition-all duration-300 animate-fade-in"
+            className="text-lg md:text-xl lg:text-2xl px-8 md:px-12 py-6 md:py-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-glow transform hover:scale-105 transition-all duration-300 animate-fade-in"
             style={{ animationDelay: '0.4s' }}
           >
             Start Scanning – Free
