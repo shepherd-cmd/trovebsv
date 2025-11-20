@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
-import { FileText, Shield, Zap, TrendingUp } from "lucide-react";
+import { FileText, Shield, Zap, TrendingUp, Search } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -214,6 +214,76 @@ const Landing = () => {
                 <p className="text-lg text-muted-foreground">{item.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Discoverable by the World */}
+      <section className="py-24 px-4 bg-gradient-to-b from-card to-background">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-4xl md:text-6xl font-bold text-center mb-12 bg-gradient-to-r from-primary to-white bg-clip-text text-transparent">
+            Discoverable by the World – Instantly
+          </h2>
+          <p className="text-3xl md:text-4xl font-bold text-center mb-16 text-foreground">
+            Every document is searchable the second it's uploaded
+          </p>
+
+          <div className="space-y-6 mb-12 max-w-3xl mx-auto">
+            {[
+              "Real-time indexing via JungleBus + GorillaPool",
+              "Full-text OCR search (every handwritten word is findable)",
+              "Public search at attic.sv/search – Google, historians, and AI companies crawl it daily"
+            ].map((item, idx) => (
+              <div key={idx} className="flex items-start gap-4 text-xl text-foreground/90">
+                <span className="text-primary text-2xl">•</span>
+                <p>{item}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Search Box Mockup */}
+          <div className="bg-gradient-card border border-primary/30 rounded-2xl p-8 mb-12 max-w-3xl mx-auto shadow-glow">
+            <div className="relative mb-8">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search millions of historical documents..."
+                className="w-full bg-background/50 border border-border rounded-full py-4 pl-14 pr-6 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                readOnly
+              />
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground mb-3">Try searching for:</p>
+              {[
+                "D-Day landing plans 1944",
+                "Beatles handwritten lyrics 1965",
+                "Sheffield factory ledger 1943",
+                "Grandad's war diary Ypres"
+              ].map((search, idx) => (
+                <div
+                  key={idx}
+                  className="bg-background/30 border border-border/50 rounded-lg px-4 py-3 text-foreground/80 hover:border-primary/50 hover:bg-background/50 transition-all cursor-pointer"
+                >
+                  <Search className="inline w-4 h-4 mr-2 text-primary" />
+                  {search}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-2xl md:text-3xl font-semibold text-center mb-8 text-foreground">
+            The rarer your document, the faster buyers find it and pay you.
+          </p>
+
+          <div className="text-center">
+            <Button
+              size="lg"
+              onClick={() => navigate("/app")}
+              className="text-xl md:text-2xl px-12 py-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-glow transform hover:scale-105 transition-all duration-300"
+            >
+              Try the Live Search
+            </Button>
           </div>
         </div>
       </section>
