@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { FileText, Shield, Zap, TrendingUp, Search } from "lucide-react";
+import ParticleBackground from "@/components/ParticleBackground";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -15,9 +16,11 @@ const Landing = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
+      <ParticleBackground />
+      
       {/* Top Bar with Shield Icon */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+      <div className="fixed top-0 left-0 right-0 z-50 glass-card backdrop-blur-xl border-b neon-border">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
           <Link
             to="/trust-safety"
@@ -59,7 +62,7 @@ const Landing = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
-          <h1 className="text-7xl md:text-[12rem] font-bold mb-8 leading-tight bg-gradient-to-r from-white via-primary/90 to-primary bg-clip-text text-transparent animate-fade-in drop-shadow-[0_0_30px_rgba(139,70,255,0.5)]">
+          <h1 className="text-7xl md:text-[12rem] font-bold mb-8 leading-tight bg-gradient-to-r from-white via-primary to-primary-light bg-clip-text text-transparent animate-fade-in drop-shadow-[0_0_50px_hsl(265_100%_70%_/_0.8)]">
             Turn your attic into perpetual Bitcoin royalties
           </h1>
           <p className="text-2xl md:text-[2.5rem] mb-12 text-white font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed" style={{ animationDelay: '0.2s' }}>
@@ -93,9 +96,9 @@ const Landing = () => {
               { step: 3, title: "Own Forever", desc: "Inscribed on BSV #47291", emoji: "💎" }
             ].map((item, idx) => (
               <div key={idx} className="relative">
-                <div className="bg-gradient-card border border-border/50 rounded-2xl p-8 text-center transform hover:scale-105 transition-all duration-300 shadow-glow">
-                  <div className="text-7xl mb-4">{item.emoji}</div>
-                  <h3 className="text-2xl font-bold mb-2 text-primary">Step {item.step}: {item.title}</h3>
+                <div className="glass-card-strong p-10 text-center hover-glow group">
+                  <div className="text-7xl mb-4 group-hover:scale-110 transition-transform">{item.emoji}</div>
+                  <h3 className="text-2xl font-bold mb-2 neon-glow">Step {item.step}: {item.title}</h3>
                   <p className="text-muted-foreground text-lg">{item.desc}</p>
                 </div>
                 {idx < 2 && (
@@ -167,12 +170,12 @@ const Landing = () => {
             "Researchers & AI labs already pay $0.50–$10 per 1,000 rare pages"
           </p>
           
-          <div className="bg-gradient-card border border-primary/30 rounded-3xl p-12 mb-12 shadow-glow">
+          <div className="glass-card-strong p-12 mb-12 animate-pulse-glow">
             <p className="text-xl text-muted-foreground mb-4">Total earnings paid out:</p>
-            <p className="text-6xl md:text-8xl font-bold text-primary mb-2">
+            <p className="text-6xl md:text-8xl font-bold neon-glow mb-2">
               {earnings.toFixed(5)} BSV
             </p>
-            <p className="text-lg text-secondary">and growing...</p>
+            <p className="text-lg text-primary-light">and growing...</p>
           </div>
 
           <div className="bg-gradient-to-r from-card to-muted border border-border/50 rounded-2xl p-8 max-w-2xl mx-auto">
@@ -208,9 +211,9 @@ const Landing = () => {
                 desc: "No middleman, no rug-pull"
               }
             ].map((item, idx) => (
-              <div key={idx} className="bg-gradient-card border border-border/50 rounded-2xl p-8 text-center transform hover:scale-105 transition-all duration-300">
-                <item.icon className="w-16 h-16 text-primary mx-auto mb-6" />
-                <h3 className="text-2xl font-bold mb-4 text-secondary">{item.title}</h3>
+              <div key={idx} className="glass-card-strong p-10 text-center hover-glow group">
+                <item.icon className="w-20 h-20 neon-glow mx-auto mb-6 group-hover:scale-110 transition-transform" />
+                <h3 className="text-2xl font-bold mb-4 neon-glow">{item.title}</h3>
                 <p className="text-lg text-muted-foreground">{item.desc}</p>
               </div>
             ))}

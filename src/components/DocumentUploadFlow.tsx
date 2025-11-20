@@ -380,16 +380,16 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
       )}
 
       {step === 'wallet' && (
-        <Card className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Step 5: Connect BSV Wallet</h2>
-          <p className="text-muted-foreground mb-6">Choose your wallet to inscribe on BSV blockchain</p>
+        <div className="glass-card-strong p-8">
+          <h2 className="text-3xl font-bold mb-4 neon-glow">Step 5: Connect BSV Wallet</h2>
+          <p className="text-muted-foreground mb-8">Choose your wallet to inscribe on BSV blockchain</p>
           
-          <div className="space-y-3">
+          <div className="space-y-4">
             <Button
               onClick={() => connectWallet('handcash')}
               disabled={isProcessing}
-              className="w-full h-16"
-              variant="outline"
+              variant="wallet"
+              className="w-full"
             >
               {isProcessing && walletType === 'handcash' ? 'Connecting...' : 'Connect HandCash'}
             </Button>
@@ -397,13 +397,13 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
             <Button
               onClick={() => connectWallet('relayx')}
               disabled={isProcessing}
-              className="w-full h-16"
-              variant="outline"
+              variant="wallet"
+              className="w-full"
             >
               {isProcessing && walletType === 'relayx' ? 'Connecting...' : 'Connect RelayX'}
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {step === 'inscribing' && (
@@ -417,42 +417,60 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
       )}
 
       {step === 'success' && inscriptionData && (
-        <Card className="p-6">
-          <div className="text-center mb-6">
-            <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Successfully Inscribed!</h2>
-            <p className="text-muted-foreground">Your document is now on the BSV blockchain</p>
+        <div className="glass-card-strong p-8 relative overflow-hidden">
+          {/* Particle burst effect */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(12)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-primary"
+                style={{
+                  animation: `particle-burst 1s ease-out ${i * 0.1}s`,
+                  '--burst-x': `${Math.cos(i * 30 * Math.PI / 180) * 200}px`,
+                  '--burst-y': `${Math.sin(i * 30 * Math.PI / 180) * 200}px`,
+                } as any}
+              />
+            ))}
+          </div>
+          
+          <div className="text-center mb-8 relative z-10">
+            <div className="inline-block p-6 glass-card rounded-3xl mb-6 animate-diamond-spin">
+              <CheckCircle className="w-20 h-20 neon-glow" />
+            </div>
+            <h2 className="text-4xl font-bold mb-3 neon-glow">Successfully Inscribed!</h2>
+            <p className="text-muted-foreground text-lg">Your document is now on the BSV blockchain</p>
           </div>
 
-          <div className="space-y-4 mb-6">
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="text-sm text-muted-foreground mb-1">Transaction ID</div>
-              <div className="font-mono text-xs break-all">{inscriptionData.txid}</div>
+          <div className="space-y-6 mb-8 relative z-10">
+            <div className="glass-card p-6 rounded-2xl">
+              <div className="text-sm text-muted-foreground mb-2">Transaction ID</div>
+              <div className="font-mono text-xs break-all neon-glow">{inscriptionData.txid}</div>
             </div>
 
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="text-sm text-muted-foreground mb-1">Public Payable Link</div>
+            <div className="glass-card p-6 rounded-2xl">
+              <div className="text-sm text-muted-foreground mb-2">Public Payable Link</div>
               <a
                 href={inscriptionData.payableLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary text-sm break-all hover:underline"
+                className="neon-glow text-sm break-all hover:underline"
               >
                 {inscriptionData.payableLink}
               </a>
             </div>
 
-            <div className="p-4 bg-primary/10 rounded-lg text-center">
-              <div className="text-sm text-muted-foreground mb-1">Total Earnings</div>
-              <div className="text-3xl font-bold">0 sats</div>
-              <div className="text-xs text-muted-foreground mt-1">Live earnings counter</div>
+            <div className="glass-card-strong p-8 rounded-2xl text-center animate-pulse-glow">
+              <div className="text-sm text-muted-foreground mb-2">Total Earnings</div>
+              <div className="text-5xl font-bold neon-glow">0 sats</div>
+              <div className="text-xs text-muted-foreground mt-2">Live earnings counter</div>
             </div>
           </div>
 
           <Button onClick={onComplete} className="w-full">
             Upload Another Document
           </Button>
-        </Card>
+        </div>
+
       )}
     </div>
   );
