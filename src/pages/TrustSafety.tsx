@@ -72,7 +72,7 @@ const TrustSafety = () => {
             We stop 99% of fakes before they even appear
           </h1>
           <p className="text-xl md:text-2xl text-foreground/80 max-w-3xl mx-auto">
-            Here's exactly how Attic keeps the archive genuine
+            Here's exactly how Trove keeps the archive genuine
           </p>
         </div>
 
