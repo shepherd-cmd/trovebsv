@@ -14,7 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          ai_analysis: Json | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          inscription_txid: string | null
+          price_per_page: number | null
+          rarity_score: number
+          status: string
+          title: string
+          total_pages: number | null
+          updated_at: string
+          usefulness_score: number
+          user_id: string
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          inscription_txid?: string | null
+          price_per_page?: number | null
+          rarity_score: number
+          status?: string
+          title: string
+          total_pages?: number | null
+          updated_at?: string
+          usefulness_score: number
+          user_id: string
+        }
+        Update: {
+          ai_analysis?: Json | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          inscription_txid?: string | null
+          price_per_page?: number | null
+          rarity_score?: number
+          status?: string
+          title?: string
+          total_pages?: number | null
+          updated_at?: string
+          usefulness_score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      royalties: {
+        Row: {
+          amount: number
+          created_at: string
+          document_id: string
+          id: string
+          owner_id: string
+          page_number: number
+          reader_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          document_id: string
+          id?: string
+          owner_id: string
+          page_number: number
+          reader_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          document_id?: string
+          id?: string
+          owner_id?: string
+          page_number?: number
+          reader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "royalties_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "royalties_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "royalties_reader_id_fkey"
+            columns: ["reader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
