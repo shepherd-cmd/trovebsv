@@ -124,7 +124,7 @@ const Landing = () => {
           
           <div className="space-y-10 text-white">
             <p className="text-2xl md:text-4xl leading-relaxed font-medium">
-              95% of the documents that shaped the 20th century are still in ordinary British homes right now.
+              95% of the documents that shaped the 20th century are still in ordinary homes right now.
             </p>
             
             <p className="text-xl md:text-3xl leading-relaxed">
