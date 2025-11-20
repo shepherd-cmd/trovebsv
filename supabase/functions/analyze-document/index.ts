@@ -44,12 +44,19 @@ Be objective but generous for genuinely rare or useful documents. Common items s
             content: [
               {
                 type: 'text',
-                text: `Analyze this document:
+                text: `Analyze this historical document for preservation on the BSV blockchain:
+
 Title: ${title}
 Category: ${category}
 Description: ${description || 'No description provided'}
 
-Provide a detailed analysis with rarity score, usefulness score, and suggested price per page.`
+Evaluate:
+1. Historical rarity and uniqueness (1-100)
+2. Educational and research value (1-100)
+3. Market value per page in BSV satoshis
+4. Estimated total pages in this document
+
+Be generous for genuinely rare documents. Common items: 20-40, Uncommon: 50-70, Rare: 80-90, Exceptional: 95-100.`
               },
               {
                 type: 'image_url',

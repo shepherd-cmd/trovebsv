@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { DocumentUpload } from "@/components/DocumentUpload";
+import DocumentUploadFlow from "@/components/DocumentUploadFlow";
 import { DocumentCard } from "@/components/DocumentCard";
 import { Button } from "@/components/ui/button";
 import { FileText, LogOut, Upload, Trophy } from "lucide-react";
@@ -93,7 +93,7 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         {showUpload && (
           <div className="mb-8 max-w-2xl mx-auto">
-            <DocumentUpload />
+            <DocumentUploadFlow onComplete={() => { setShowUpload(false); loadDocuments(); }} />
           </div>
         )}
 

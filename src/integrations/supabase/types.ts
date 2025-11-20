@@ -20,51 +20,69 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          document_photos: Json | null
           id: string
           image_url: string
           inscription_txid: string | null
+          payable_link: string | null
           price_per_page: number | null
+          provenance_photos: Json | null
           rarity_score: number
           status: string
           title: string
+          total_earnings: number | null
           total_pages: number | null
           updated_at: string
           usefulness_score: number
           user_id: string
+          view_count: number | null
+          wallet_address: string | null
         }
         Insert: {
           ai_analysis?: Json | null
           category: string
           created_at?: string
           description?: string | null
+          document_photos?: Json | null
           id?: string
           image_url: string
           inscription_txid?: string | null
+          payable_link?: string | null
           price_per_page?: number | null
+          provenance_photos?: Json | null
           rarity_score: number
           status?: string
           title: string
+          total_earnings?: number | null
           total_pages?: number | null
           updated_at?: string
           usefulness_score: number
           user_id: string
+          view_count?: number | null
+          wallet_address?: string | null
         }
         Update: {
           ai_analysis?: Json | null
           category?: string
           created_at?: string
           description?: string | null
+          document_photos?: Json | null
           id?: string
           image_url?: string
           inscription_txid?: string | null
+          payable_link?: string | null
           price_per_page?: number | null
+          provenance_photos?: Json | null
           rarity_score?: number
           status?: string
           title?: string
+          total_earnings?: number | null
           total_pages?: number | null
           updated_at?: string
           usefulness_score?: number
           user_id?: string
+          view_count?: number | null
+          wallet_address?: string | null
         }
         Relationships: [
           {

@@ -1,0 +1,459 @@
+import { useState, useRef } from 'react';
+import { Camera, Upload, Newspaper, Ruler, FileText, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+const CATEGORIES = [
+  'Maps', 'Diaries', 'Letters', 'Manuscripts', 'Books', 
+  'Battle Plans', 'Newspapers', 'Photographs', 'Other'
+];
+
+const PROVENANCE_TYPES = [
+  { id: 'newspaper', label: 'With Today\'s Newspaper', icon: Newspaper },
+  { id: 'ruler', label: 'With Ruler (Scale)', icon: Ruler },
+  { id: 'texture1', label: 'Paper Texture Close-up 1', icon: FileText },
+  { id: 'texture2', label: 'Paper Texture Close-up 2', icon: FileText },
+];
+
+type UploadStep = 'photos' | 'provenance' | 'details' | 'pricing' | 'wallet' | 'inscribing' | 'success';
+
+interface AnalysisResult {
+  rarity_score: number;
+  usefulness_score: number;
+  price_per_page: number;
+  analysis: string;
+  estimated_pages: number;
+}
+
+export default function DocumentUploadFlow({ onComplete }: { onComplete: () => void }) {
+  const [step, setStep] = useState<UploadStep>('photos');
+  const [documentPhotos, setDocumentPhotos] = useState<File[]>([]);
+  const [provenancePhotos, setProvenancePhotos] = useState<Record<string, File>>({});
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [aiAnalysis, setAiAnalysis] = useState<AnalysisResult | null>(null);
+  const [pricePerPage, setPricePerPage] = useState<number>(0);
+  const [walletType, setWalletType] = useState<'handcash' | 'relayx' | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [inscriptionData, setInscriptionData] = useState<any>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const provenanceInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleDocumentPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setDocumentPhotos(Array.from(e.target.files));
+    }
+  };
+
+  const handleProvenancePhoto = (type: string, file: File) => {
+    setProvenancePhotos(prev => ({ ...prev, [type]: file }));
+  };
+
+  const captureProvenancePhoto = (type: string) => {
+    provenanceInputRef.current?.click();
+    provenanceInputRef.current!.onchange = (e: any) => {
+      if (e.target.files?.[0]) {
+        handleProvenancePhoto(type, e.target.files[0]);
+      }
+    };
+  };
+
+  const allProvenancePhotosCollected = () => {
+    return PROVENANCE_TYPES.every(type => provenancePhotos[type.id]);
+  };
+
+  const analyzeDocument = async () => {
+    if (!documentPhotos[0] || !title || !category) return;
+
+    setIsProcessing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Upload first document photo
+      const fileExt = documentPhotos[0].name.split('.').pop();
+      const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, documentPhotos[0]);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+      // Call AI analysis
+      const { data: analysisData, error: functionError } = await supabase.functions.invoke('analyze-document', {
+        body: { imageUrl: publicUrl, category, title, description }
+      });
+
+      if (functionError) throw functionError;
+
+      setAiAnalysis(analysisData);
+      setPricePerPage(analysisData.price_per_page);
+      setStep('pricing');
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: 'Analysis Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const connectWallet = async (type: 'handcash' | 'relayx') => {
+    setWalletType(type);
+    setIsProcessing(true);
+    
+    // Simulate wallet connection
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setIsProcessing(false);
+    setStep('inscribing');
+    inscribeDocument(type);
+  };
+
+  const inscribeDocument = async (wallet: 'handcash' | 'relayx') => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Upload all photos
+      const uploadedDocPhotos = await Promise.all(
+        documentPhotos.map(async (photo, idx) => {
+          const fileExt = photo.name.split('.').pop();
+          const filePath = `${user.id}/doc_${idx}_${crypto.randomUUID()}.${fileExt}`;
+          await supabase.storage.from('documents').upload(filePath, photo);
+          const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(filePath);
+          return publicUrl;
+        })
+      );
+
+      const uploadedProvenancePhotos = await Promise.all(
+        Object.entries(provenancePhotos).map(async ([type, photo]) => {
+          const fileExt = photo.name.split('.').pop();
+          const filePath = `${user.id}/prov_${type}_${crypto.randomUUID()}.${fileExt}`;
+          await supabase.storage.from('documents').upload(filePath, photo);
+          const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(filePath);
+          return { type, url: publicUrl };
+        })
+      );
+
+      // Call inscription edge function
+      const { data: inscriptionResult, error: inscribeError } = await supabase.functions.invoke('inscribe-document', {
+        body: {
+          documentPhotos: uploadedDocPhotos,
+          provenancePhotos: uploadedProvenancePhotos,
+          metadata: { title, description, category, pricePerPage },
+          walletType: wallet,
+          walletData: { address: `${wallet}-mock-address` }
+        }
+      });
+
+      if (inscribeError) throw inscribeError;
+
+      // Save to database
+      const { error: dbError } = await supabase.from('documents').insert([{
+        user_id: user.id,
+        title,
+        description,
+        category,
+        image_url: uploadedDocPhotos[0],
+        document_photos: uploadedDocPhotos as any,
+        provenance_photos: uploadedProvenancePhotos as any,
+        rarity_score: aiAnalysis!.rarity_score,
+        usefulness_score: aiAnalysis!.usefulness_score,
+        price_per_page: pricePerPage,
+        total_pages: aiAnalysis!.estimated_pages,
+        ai_analysis: aiAnalysis as any,
+        inscription_txid: inscriptionResult.txid,
+        wallet_address: inscriptionResult.walletAddress,
+        payable_link: inscriptionResult.payableLink,
+        status: 'inscribed'
+      }]);
+
+      if (dbError) throw dbError;
+
+      setInscriptionData(inscriptionResult);
+      setStep('success');
+    } catch (error) {
+      console.error('Inscription error:', error);
+      toast({
+        title: 'Inscription Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+      setStep('wallet');
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      {step === 'photos' && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Step 1: Capture Document Photos</h2>
+          <p className="text-muted-foreground mb-6">Take photos of all pages in your document</p>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            onChange={handleDocumentPhotos}
+            className="hidden"
+          />
+          
+          <Button onClick={() => fileInputRef.current?.click()} className="w-full mb-4">
+            <Camera className="mr-2" />
+            Capture Document Pages ({documentPhotos.length} photos)
+          </Button>
+
+          {documentPhotos.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {documentPhotos.map((photo, idx) => (
+                <img
+                  key={idx}
+                  src={URL.createObjectURL(photo)}
+                  alt={`Page ${idx + 1}`}
+                  className="w-full h-24 object-cover rounded"
+                />
+              ))}
+            </div>
+          )}
+
+          <Button
+            onClick={() => setStep('provenance')}
+            disabled={documentPhotos.length === 0}
+            className="w-full"
+          >
+            Next: Provenance Photos
+          </Button>
+        </Card>
+      )}
+
+      {step === 'provenance' && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Step 2: Provenance Photos</h2>
+          <p className="text-muted-foreground mb-6">Required: 4 verification photos</p>
+          
+          <input
+            ref={provenanceInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+          />
+
+          <div className="space-y-4 mb-6">
+            {PROVENANCE_TYPES.map(({ id, label, icon: Icon }) => (
+              <div key={id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5" />
+                  <span>{label}</span>
+                </div>
+                {provenancePhotos[id] ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                ) : (
+                  <Button onClick={() => captureProvenancePhoto(id)} size="sm">
+                    <Camera className="w-4 h-4 mr-1" />
+                    Capture
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <Button
+            onClick={() => setStep('details')}
+            disabled={!allProvenancePhotosCollected()}
+            className="w-full"
+          >
+            Next: Document Details
+          </Button>
+        </Card>
+      )}
+
+      {step === 'details' && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Step 3: Document Details</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Civil War Battle Map"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the document's history and significance"
+                rows={4}
+              />
+            </div>
+
+            <Button
+              onClick={analyzeDocument}
+              disabled={!title || !category || isProcessing}
+              className="w-full"
+            >
+              {isProcessing ? 'Analyzing...' : 'Analyze with AI'}
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {step === 'pricing' && aiAnalysis && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Step 4: AI Analysis & Pricing</h2>
+          
+          <div className="space-y-4 mb-6">
+            <div className="p-4 bg-muted rounded-lg">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <div className="text-sm text-muted-foreground">Rarity Score</div>
+                  <div className="text-2xl font-bold">{aiAnalysis.rarity_score}/100</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Usefulness</div>
+                  <div className="text-2xl font-bold">{aiAnalysis.usefulness_score}/100</div>
+                </div>
+              </div>
+              <div className="text-sm">{aiAnalysis.analysis}</div>
+            </div>
+
+            <div>
+              <Label htmlFor="price">Price Per Page View (satoshis)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={pricePerPage}
+                onChange={(e) => setPricePerPage(Number(e.target.value))}
+                min="1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                AI suggested: {aiAnalysis.price_per_page} sats
+              </p>
+            </div>
+          </div>
+
+          <Button onClick={() => setStep('wallet')} className="w-full">
+            Next: Connect Wallet
+          </Button>
+        </Card>
+      )}
+
+      {step === 'wallet' && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Step 5: Connect BSV Wallet</h2>
+          <p className="text-muted-foreground mb-6">Choose your wallet to inscribe on BSV blockchain</p>
+          
+          <div className="space-y-3">
+            <Button
+              onClick={() => connectWallet('handcash')}
+              disabled={isProcessing}
+              className="w-full h-16"
+              variant="outline"
+            >
+              {isProcessing && walletType === 'handcash' ? 'Connecting...' : 'Connect HandCash'}
+            </Button>
+            
+            <Button
+              onClick={() => connectWallet('relayx')}
+              disabled={isProcessing}
+              className="w-full h-16"
+              variant="outline"
+            >
+              {isProcessing && walletType === 'relayx' ? 'Connecting...' : 'Connect RelayX'}
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {step === 'inscribing' && (
+        <Card className="p-6 text-center">
+          <div className="animate-pulse mb-4">
+            <Upload className="w-16 h-16 mx-auto text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Inscribing to BSV Blockchain</h2>
+          <p className="text-muted-foreground">Please wait while we inscribe your document as a 1Sat Ordinal...</p>
+        </Card>
+      )}
+
+      {step === 'success' && inscriptionData && (
+        <Card className="p-6">
+          <div className="text-center mb-6">
+            <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Successfully Inscribed!</h2>
+            <p className="text-muted-foreground">Your document is now on the BSV blockchain</p>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <div className="p-4 bg-muted rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">Transaction ID</div>
+              <div className="font-mono text-xs break-all">{inscriptionData.txid}</div>
+            </div>
+
+            <div className="p-4 bg-muted rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">Public Payable Link</div>
+              <a
+                href={inscriptionData.payableLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary text-sm break-all hover:underline"
+              >
+                {inscriptionData.payableLink}
+              </a>
+            </div>
+
+            <div className="p-4 bg-primary/10 rounded-lg text-center">
+              <div className="text-sm text-muted-foreground mb-1">Total Earnings</div>
+              <div className="text-3xl font-bold">0 sats</div>
+              <div className="text-xs text-muted-foreground mt-1">Live earnings counter</div>
+            </div>
+          </div>
+
+          <Button onClick={onComplete} className="w-full">
+            Upload Another Document
+          </Button>
+        </Card>
+      )}
+    </div>
+  );
+}
