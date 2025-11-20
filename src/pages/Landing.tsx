@@ -63,7 +63,7 @@ const Landing = () => {
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
           <h1 className="text-7xl md:text-[12rem] font-bold mb-8 leading-tight bg-gradient-to-r from-white via-primary to-primary-light bg-clip-text text-transparent animate-fade-in drop-shadow-[0_0_50px_hsl(265_100%_70%_/_0.8)]">
-            Turn your attic into perpetual Bitcoin royalties
+            Turn your collection into perpetual Bitcoin royalties
           </h1>
           <p className="text-2xl md:text-[2.5rem] mb-12 text-white font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed" style={{ animationDelay: '0.2s' }}>
             Scan anything rare hiding in your house<br />
@@ -136,7 +136,7 @@ const Landing = () => {
             </p>
             
             <p className="text-3xl md:text-5xl leading-relaxed font-bold text-primary mt-12">
-              Attic changes that.
+              Trove changes that.
             </p>
             
             <p className="text-xl md:text-3xl leading-relaxed mt-12">
@@ -235,7 +235,7 @@ const Landing = () => {
             {[
               "Real-time indexing via JungleBus + GorillaPool",
               "Full-text OCR search (every handwritten word is findable)",
-              "Public search at attic.sv/search – Google, historians, and AI companies crawl it daily"
+              "Public search at trove.sv/search – Google, historians, and AI companies crawl it daily"
             ].map((item, idx) => (
               <div key={idx} className="flex items-start gap-4 text-xl text-foreground/90">
                 <span className="text-primary text-2xl">•</span>
@@ -302,7 +302,7 @@ const Landing = () => {
             onClick={() => navigate("/app")}
             className="text-xl md:text-2xl px-16 py-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-glow transform hover:scale-105 transition-all duration-300"
           >
-            Open Attic → Start Earning
+            Open Trove → Start Earning
           </Button>
         </div>
       </section>
