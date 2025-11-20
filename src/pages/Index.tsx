@@ -40,9 +40,11 @@ const Index = () => {
   }, [user]);
 
   const loadDocuments = async () => {
+    // Only load user's own documents with full details including wallet_address and total_earnings
     const { data } = await supabase
       .from('documents')
       .select('*')
+      .eq('user_id', user!.id)
       .order('created_at', { ascending: false });
     
     if (data) {
