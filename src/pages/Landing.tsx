@@ -59,11 +59,15 @@ const Landing = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
-          <h1 className="text-6xl md:text-9xl font-bold mb-6 leading-tight bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent animate-fade-in">
+          <h1 className="text-7xl md:text-[12rem] font-bold mb-8 leading-tight bg-gradient-to-r from-white via-primary/90 to-primary bg-clip-text text-transparent animate-fade-in drop-shadow-[0_0_30px_rgba(139,70,255,0.5)]">
             Turn your attic into perpetual Bitcoin royalties
           </h1>
-          <p className="text-2xl md:text-4xl mb-12 text-foreground/90 font-light max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Scan your grandparents' old maps, diaries, letters → inscribe on BSV → earn every time historians & AI read a page
+          <p className="text-2xl md:text-[2.5rem] mb-12 text-white font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed" style={{ animationDelay: '0.2s' }}>
+            Scan anything rare hiding in your house<br />
+            <span className="text-primary/80">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
+            <br /><br />
+            One tap inscribes it forever on BSV<br />
+            You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.
           </p>
           <Button
             size="lg"
