@@ -50,7 +50,7 @@ const Landing = () => {
             Turn your attic into perpetual Bitcoin royalties
           </h1>
           <p className="text-2xl md:text-4xl mb-12 text-foreground/90 font-light max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Scan grandad's old maps, diaries, letters → inscribe on BSV → earn every time historians & AI read a page
+            Scan your grandparents' old maps, diaries, letters → inscribe on BSV → earn every time historians & AI read a page
           </p>
           <Button
             size="lg"
