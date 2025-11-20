@@ -110,29 +110,50 @@ const Landing = () => {
       </section>
 
       {/* Why This Actually Matters */}
-      <section className="py-24 px-4 bg-gradient-to-b from-background to-card">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="relative overflow-hidden rounded-2xl">
-              <div className="aspect-square bg-muted flex items-center justify-center">
-                <FileText className="w-32 h-32 text-secondary opacity-50" />
-              </div>
-            </div>
-            <div className="space-y-6">
-              <h2 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Why This Actually Matters
-              </h2>
-              <p className="text-2xl md:text-3xl leading-relaxed text-foreground/90">
-                "95% of 20th-century personal records are still in British lofts.
-              </p>
-              <p className="text-2xl md:text-3xl leading-relaxed text-foreground/90">
-                Most will be thrown away when the last grandparent dies.
-              </p>
-              <p className="text-2xl md:text-3xl leading-relaxed font-semibold text-primary">
-                BSV Archive rescues them — and pays the family forever."
-              </p>
-            </div>
+      <section className="py-32 px-4 relative overflow-hidden bg-gradient-to-b from-background to-card">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGV4dCB4PSIxMCIgeT0iMjAiIGZvbnQtZmFtaWx5PSJzZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzg4ODg4OCIgb3BhY2l0eT0iMC4zIj5EZWFyIEpvaG4sIEkgd3JpdGUgdG8geW91IGZyb20uLi48L3RleHQ+PC9zdmc+')] bg-repeat" />
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <h2 className="text-5xl md:text-7xl font-bold mb-16 bg-gradient-to-r from-primary via-primary/80 to-white bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(139,70,255,0.6)] leading-tight">
+            This could rewrite history — and put Bitcoin in your family forever
+          </h2>
+          
+          <div className="space-y-10 text-white">
+            <p className="text-2xl md:text-4xl leading-relaxed font-medium">
+              95% of the documents that shaped the 20th century are still in ordinary British homes right now.
+            </p>
+            
+            <p className="text-xl md:text-3xl leading-relaxed">
+              The unknown D-Day maps. The lost Beatles lyrics. The resistance letters that never made the history books. The factory ledgers that explain whole towns. The only surviving photos of forgotten regiments. The hand-written accounts that contradict the official story.
+            </p>
+            
+            <p className="text-2xl md:text-4xl leading-relaxed font-semibold text-primary/90">
+              Most will be thrown in a skip the day the last grandparent dies.
+            </p>
+            
+            <p className="text-3xl md:text-5xl leading-relaxed font-bold text-primary mt-12">
+              Attic changes that.
+            </p>
+            
+            <p className="text-xl md:text-3xl leading-relaxed mt-12">
+              Every scan you upload becomes immutably timestamped on Bitcoin SV — court-grade proof it existed.<br />
+              Every time a historian, documentary maker, university, or AI lab reads a page, you get paid instantly and forever.
+            </p>
+            
+            <p className="text-2xl md:text-4xl leading-relaxed font-semibold mt-12">
+              You're not just digitising old paper.<br />
+              You're rescuing lost truth and turning it into generational wealth.
+            </p>
           </div>
+          
+          <Button
+            size="lg"
+            onClick={() => navigate("/app")}
+            className="mt-16 text-xl md:text-2xl px-16 py-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-glow transform hover:scale-105 transition-all duration-300"
+          >
+            Start Rescuing History – Free
+          </Button>
         </div>
       </section>
 
