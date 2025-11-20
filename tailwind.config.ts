@@ -21,6 +21,7 @@ export default {
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          light: "hsl(var(--primary-light))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -47,6 +48,8 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "glass-bg": "var(--glass-bg)",
+        "glass-border": "var(--glass-border)",
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
@@ -54,6 +57,10 @@ export default {
       },
       boxShadow: {
         'glow': 'var(--shadow-glow)',
+        'glow-strong': 'var(--shadow-glow-strong)',
+      },
+      backdropBlur: {
+        'glass': '24px',
       },
       borderRadius: {
         lg: "var(--radius)",

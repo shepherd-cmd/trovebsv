@@ -8,31 +8,92 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 222 25% 6%;
+    --background: 0 0% 2%;
     --foreground: 0 0% 100%;
-    --card: 222 20% 8%;
+    --card: 0 0% 5%;
     --card-foreground: 0 0% 100%;
-    --popover: 222 20% 8%;
+    --popover: 0 0% 5%;
     --popover-foreground: 0 0% 100%;
-    --primary: 265 100% 64%;
+    --primary: 265 100% 70%;
+    --primary-light: 265 100% 80%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 29 46% 42%;
+    --secondary: 265 80% 60%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 222 15% 15%;
+    --muted: 0 0% 15%;
     --muted-foreground: 0 0% 70%;
-    --accent: 265 100% 64%;
+    --accent: 265 100% 70%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 15% 15%;
-    --input: 222 15% 15%;
-    --ring: 265 100% 64%;
-    --radius: 0.75rem;
+    --border: 265 100% 70%;
+    --input: 0 0% 15%;
+    --ring: 265 100% 70%;
+    --radius: 1rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(265 100% 64%), hsl(265 100% 54%));
-    --gradient-card: linear-gradient(180deg, hsl(222 20% 8%), hsl(222 20% 6%));
-    --shadow-glow: 0 0 60px hsl(265 100% 64% / 0.25);
-    --shadow-sepia: 0 0 40px hsl(29 46% 42% / 0.15);
+    --gradient-primary: linear-gradient(135deg, hsl(265 100% 70%), hsl(265 100% 80%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 5% / 0.4), hsl(0 0% 3% / 0.3));
+    --shadow-glow: 0 0 80px hsl(265 100% 70% / 0.4);
+    --shadow-glow-strong: 0 0 120px hsl(265 100% 70% / 0.6);
+    --glass-bg: hsl(0 0% 10% / 0.15);
+    --glass-border: hsl(265 100% 70% / 0.3);
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-glass-bg backdrop-blur-xl border border-glass-border rounded-2xl;
+  }
+  
+  .glass-card-strong {
+    @apply bg-glass-bg backdrop-blur-3xl border-2 border-glass-border rounded-2xl shadow-glow;
+  }
+  
+  .neon-glow {
+    @apply text-primary drop-shadow-[0_0_20px_hsl(265_100%_70%_/_0.7)];
+  }
+  
+  .neon-border {
+    @apply border border-primary shadow-[0_0_20px_hsl(265_100%_70%_/_0.5)];
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300 hover:shadow-glow-strong hover:border-primary-light;
+  }
+  
+  @keyframes float-particle {
+    0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+    50% { transform: translate(var(--x), var(--y)); opacity: 0.6; }
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 40px hsl(265 100% 70% / 0.4); }
+    50% { box-shadow: 0 0 80px hsl(265 100% 70% / 0.8); }
+  }
+  
+  @keyframes diamond-spin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  
+  @keyframes particle-burst {
+    0% { transform: translate(0, 0) scale(0); opacity: 1; }
+    100% { transform: translate(var(--burst-x), var(--burst-y)) scale(1); opacity: 0; }
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .animate-diamond-spin {
+    animation: diamond-spin 3s ease-in-out infinite;
+  }
+  
+  .particle-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
   }
 }
 

@@ -33,39 +33,42 @@ export function DocumentCard({
   const rarity = getRarityLabel(rarityScore);
 
   return (
-    <Card className="overflow-hidden bg-gradient-card border-border/50 hover:shadow-glow transition-all duration-300">
-      <div className="aspect-video overflow-hidden">
+    <div className="glass-card-strong overflow-hidden hover-glow group">
+      <div className="aspect-video overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
         <img
           src={imageUrl}
           alt={title}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
       </div>
-      <CardContent className="p-4 space-y-3">
+      <div className="p-6 space-y-4">
         <div>
-          <h3 className="font-semibold text-lg text-foreground">{title}</h3>
-          <p className="text-sm text-muted-foreground">{category}</p>
+          <h3 className="font-semibold text-xl text-foreground group-hover:neon-glow transition-all">{title}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{category}</p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge className={`${rarity.color} text-white`}>
+          <Badge className={`${rarity.color} text-white neon-border`}>
             {rarity.label}
           </Badge>
-          <Badge variant="outline">
+          <Badge variant="outline" className="glass-card">
             <TrendingUp className="mr-1 h-3 w-3" />
             Usefulness: {usefulnessScore}
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <div>
-            <span className="text-muted-foreground">Price/page:</span>
-            <span className="ml-2 font-semibold text-primary">
-              {pricePerPage.toFixed(8)} BSV
-            </span>
-          </div>
-          <div className="text-muted-foreground">
-            {totalPages} pages
+        <div className="glass-card p-4 rounded-xl">
+          <div className="flex items-center justify-between text-sm">
+            <div>
+              <span className="text-muted-foreground">Price/page:</span>
+              <span className="ml-2 font-semibold neon-glow">
+                {pricePerPage.toFixed(8)} BSV
+              </span>
+            </div>
+            <div className="text-muted-foreground">
+              {totalPages} pages
+            </div>
           </div>
         </div>
 
@@ -73,7 +76,7 @@ export function DocumentCard({
           <Clock className="mr-1 h-3 w-3" />
           {new Date(createdAt).toLocaleDateString()}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
