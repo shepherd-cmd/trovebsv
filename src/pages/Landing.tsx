@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FileText, Shield, Zap, TrendingUp } from "lucide-react";
 
 const Landing = () => {
@@ -16,6 +16,19 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      {/* Top Bar with Shield Icon */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
+          <Link
+            to="/trust-safety"
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors group"
+          >
+            <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span className="text-sm font-medium">Trust & Safety</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* Animated Background */}
