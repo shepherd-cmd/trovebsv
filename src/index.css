@@ -143,4 +143,64 @@ All colors MUST be HSL.
   .font-title {
     font-family: 'Cinzel', 'Georgia', serif;
   }
+
+  /* Dust motes animation */
+  @keyframes float-dust {
+    0%, 100% {
+      transform: translate(0, 0);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translate(20px, -30px);
+      opacity: 0.6;
+    }
+  }
+
+  .dust-mote {
+    animation: float-dust linear infinite;
+  }
+
+  /* Onboarding story backgrounds */
+  .onboarding-step-1 {
+    background: linear-gradient(135deg, 
+      hsl(30 35% 25%) 0%, 
+      hsl(35 40% 20%) 50%,
+      hsl(30 30% 15%) 100%
+    ),
+    radial-gradient(circle at 50% 30%, hsl(42 88% 55% / 0.15) 0%, transparent 50%);
+  }
+
+  .onboarding-step-2 {
+    background: linear-gradient(135deg, 
+      hsl(25 30% 20%) 0%, 
+      hsl(30 35% 18%) 50%,
+      hsl(25 25% 12%) 100%
+    ),
+    radial-gradient(circle at 50% 40%, hsl(38 60% 45% / 0.2) 0%, transparent 60%);
+  }
+
+  .onboarding-step-3 {
+    background: linear-gradient(135deg, 
+      hsl(35 40% 22%) 0%, 
+      hsl(40 45% 20%) 50%,
+      hsl(30 35% 15%) 100%
+    ),
+    radial-gradient(circle at 50% 50%, hsl(42 88% 55% / 0.25) 0%, transparent 50%);
+  }
+
+  /* Pulse animation for CTA */
+  @keyframes pulse-soft {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 20px hsl(42 88% 55% / 0.3);
+    }
+    50% {
+      transform: scale(1.02);
+      box-shadow: 0 0 40px hsl(42 88% 55% / 0.5);
+    }
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
 }
