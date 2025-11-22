@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useTroveStore } from "@/store/useTroveStore";
 import { PaywallOverlay } from "@/components/PaywallOverlay";
 import { DocumentViewer } from "@/components/DocumentViewer";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ interface Document {
 }
 
 const TheVault = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, session, setUser, setSession } = useTroveStore();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [unlockedDocIds, setUnlockedDocIds] = useState<Set<string>>(new Set());
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
@@ -31,24 +31,26 @@ const TheVault = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
       if (!session) {
         navigate("/");
-      } else {
-        setUser(session.user);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
       if (!session) {
         navigate("/");
-      } else {
-        setUser(session.user);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, setUser, setSession]);
 
   useEffect(() => {
     if (user) {
@@ -83,6 +85,8 @@ const TheVault = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
     navigate("/");
   };
 

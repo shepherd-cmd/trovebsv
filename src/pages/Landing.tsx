@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTroveStore } from "@/store/useTroveStore";
 import { Button } from "@/components/ui/button";
 import { Camera, Shield, TrendingUp, Search, Zap, FileText } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -8,7 +9,8 @@ import { AmbientSound } from "@/components/AmbientSound";
 
 const Landing = () => {
   const navigate = useNavigate();
-  const [earnings, setEarnings] = useState(0);
+  const { balanceBSV } = useTroveStore();
+  const [earnings, setEarnings] = useState(balanceBSV);
 
   useEffect(() => {
     const interval = setInterval(() => {

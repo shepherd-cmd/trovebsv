@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useTroveStore } from "@/store/useTroveStore";
 import { Button } from "@/components/ui/button";
 import { Book, LogOut, Home, DoorOpen, TrendingUp, Users, Coins, Gift, RefreshCw } from "lucide-react";
 
@@ -21,12 +21,12 @@ interface TreasuryTransaction {
 }
 
 const Treasury = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, session, setUser, setSession, balanceBSV, setBalanceBSV, totalRoyaltiesPaid, setTotalRoyaltiesPaid, totalSponsored, setTotalSponsored } = useTroveStore();
   const [stats, setStats] = useState<TreasuryStats>({
-    totalBsvInTreasury: 0,
+    totalBsvInTreasury: balanceBSV,
     totalTreasuresPreserved: 0,
-    totalRoyaltiesPaid: 0,
-    sponsoredInscriptionsLeft: 50,
+    totalRoyaltiesPaid: totalRoyaltiesPaid,
+    sponsoredInscriptionsLeft: totalSponsored,
   });
   const [recentTransactions, setRecentTransactions] = useState<TreasuryTransaction[]>([]);
   const [showDonationPrompt, setShowDonationPrompt] = useState(false);
@@ -35,24 +35,26 @@ const Treasury = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
       if (!session) {
         navigate("/");
-      } else {
-        setUser(session.user);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
       if (!session) {
         navigate("/");
-      } else {
-        setUser(session.user);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, setUser, setSession]);
 
   useEffect(() => {
     if (user) {
@@ -111,12 +113,17 @@ const Treasury = () => {
       if (unlocks) {
         const royaltiesTotal = unlocks.reduce((sum, unlock) => sum + Number(unlock.owner_share), 0);
 
-        setStats({
+        const newStats = {
           totalBsvInTreasury: treasuryBalanceBSV,
           totalTreasuresPreserved: documentsCount || 0,
           totalRoyaltiesPaid: royaltiesTotal,
           sponsoredInscriptionsLeft: totalFreeInscriptionsLeft,
-        });
+        };
+        
+        setStats(newStats);
+        setBalanceBSV(treasuryBalanceBSV);
+        setTotalRoyaltiesPaid(royaltiesTotal);
+        setTotalSponsored(totalFreeInscriptionsLeft);
       }
 
       setLastUpdated(new Date());
@@ -127,6 +134,8 @@ const Treasury = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
     navigate("/");
   };
 
