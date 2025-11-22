@@ -62,6 +62,7 @@ export type Database = {
           id: string
           image_url: string
           inscription_txid: string | null
+          owner_paymail: string | null
           payable_link: string | null
           price_per_page: number | null
           provenance_photos: Json | null
@@ -85,6 +86,7 @@ export type Database = {
           id?: string
           image_url: string
           inscription_txid?: string | null
+          owner_paymail?: string | null
           payable_link?: string | null
           price_per_page?: number | null
           provenance_photos?: Json | null
@@ -108,6 +110,7 @@ export type Database = {
           id?: string
           image_url?: string
           inscription_txid?: string | null
+          owner_paymail?: string | null
           payable_link?: string | null
           price_per_page?: number | null
           provenance_photos?: Json | null
@@ -136,21 +139,27 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          free_inscriptions_remaining: number | null
           id: string
+          lifetime_archivist: boolean | null
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          free_inscriptions_remaining?: number | null
           id: string
+          lifetime_archivist?: boolean | null
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          free_inscriptions_remaining?: number | null
           id?: string
+          lifetime_archivist?: boolean | null
           updated_at?: string
           username?: string | null
         }
