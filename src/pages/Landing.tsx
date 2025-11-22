@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Shield, TrendingUp, Search, Zap, FileText } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import { StepModal } from "@/components/StepModal";
+import { SoundToggle } from "@/components/SoundToggle";
+import { playStepSound } from "@/utils/stepSounds";
 import libraryBg from "@/assets/hero-library-bg.jpg";
 import { AmbientSound } from "@/components/AmbientSound";
 
@@ -15,6 +17,11 @@ const Landing = () => {
 
   const handleOpenCamera = () => {
     navigate("/scan");
+  };
+
+  const handleStepClick = (step: number) => {
+    playStepSound(step);
+    setSelectedStep(step);
   };
 
   return (
@@ -115,7 +122,7 @@ const Landing = () => {
             ].map((item, idx) => (
               <div key={idx} className="relative">
                 <button
-                  onClick={() => setSelectedStep(item.step)}
+                  onClick={() => handleStepClick(item.step)}
                   className="w-full parchment-card p-10 text-center group cursor-pointer transition-all hover:scale-105 relative overflow-hidden"
                   style={{
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
@@ -327,6 +334,7 @@ const Landing = () => {
       </section>
 
       <AmbientSound />
+      <SoundToggle />
       
       {/* Step Modals */}
       <StepModal 
