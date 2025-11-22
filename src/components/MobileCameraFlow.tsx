@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useTroveStore } from "@/store/useTroveStore";
 import { InscriptionBottomSheet } from "./InscriptionBottomSheet";
 import { InscriptionLoadingAnimation } from "./InscriptionLoadingAnimation";
 import { InscriptionSuccessAnimation } from "./InscriptionSuccessAnimation";
@@ -18,6 +19,7 @@ interface MobileCameraFlowProps {
 }
 
 export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFlowProps) => {
+  const { setProvenanceResult, setLastReportTx } = useTroveStore();
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -171,9 +173,11 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
         const provenanceResult = await analyzeProvenance(imageData);
         setProvenanceScore(provenanceResult.score);
         setProvenanceDescription(provenanceResult.description);
+        setProvenanceResult(provenanceResult.score, provenanceResult.description);
       } catch (error) {
         setProvenanceScore(85);
         setProvenanceDescription('Basic authenticity check passed');
+        setProvenanceResult(85, 'Basic authenticity check passed');
       } finally {
         setIsAnalyzing(false);
       }
@@ -223,6 +227,7 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
       // Embed watermark with inscription txid
       const imageToInscribe = filteredImage || capturedImage;
       const watermarkedImage = await embedWatermark(imageToInscribe, mockTxid);
+      setLastReportTx(mockTxid);
       
       // Convert watermarked image to blob
       const response = await fetch(watermarkedImage);

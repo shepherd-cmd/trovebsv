@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useTroveStore } from "@/store/useTroveStore";
 import { Book, LogOut, Vault } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VaultPolaroid } from "@/components/VaultPolaroid";
@@ -21,30 +21,30 @@ interface Document {
 }
 
 const MyVault = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const { user, session, setUser, setSession, documents, setDocuments, selectedDocument, setSelectedDocument } = useTroveStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
       if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
+        navigate("/");
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
       if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
+        navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, setUser, setSession]);
 
   useEffect(() => {
     if (user) {
@@ -67,6 +67,8 @@ const MyVault = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
     navigate("/");
   };
 
