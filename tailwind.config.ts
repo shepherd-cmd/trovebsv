@@ -13,6 +13,13 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'display': ['Playfair Display', 'Georgia', 'serif'],
+        'title': ['Cinzel', 'Georgia', 'serif'],
+        'body': ['Crimson Text', 'Georgia', 'serif'],
+        'sans': ['Crimson Text', 'Georgia', 'serif'],
+        'serif': ['Playfair Display', 'Georgia', 'serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -48,16 +55,20 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        "glass-bg": "var(--glass-bg)",
-        "glass-border": "var(--glass-border)",
+        "parchment-bg": "var(--parchment-bg)",
+        "parchment-border": "var(--parchment-border)",
+        "brass-bg": "var(--brass-bg)",
+        "brass-border": "var(--brass-border)",
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
         'gradient-card': 'var(--gradient-card)',
+        'gradient-leather': 'var(--gradient-leather)',
       },
       boxShadow: {
         'glow': 'var(--shadow-glow)',
         'glow-strong': 'var(--shadow-glow-strong)',
+        'inset': 'var(--shadow-inset)',
       },
       backdropBlur: {
         'glass': '24px',

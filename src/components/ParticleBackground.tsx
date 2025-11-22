@@ -22,15 +22,15 @@ export default function ParticleBackground() {
       opacity: number;
     }> = [];
 
-    // Create particles
-    for (let i = 0; i < 50; i++) {
+    // Create warm dust mote particles
+    for (let i = 0; i < 40; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        size: Math.random() * 3 + 1,
-        speedX: (Math.random() - 0.5) * 0.5,
-        speedY: (Math.random() - 0.5) * 0.5,
-        opacity: Math.random() * 0.5 + 0.2,
+        size: Math.random() * 2.5 + 0.5,
+        speedX: (Math.random() - 0.5) * 0.3,
+        speedY: Math.random() * 0.2 - 0.4, // Gentle upward drift
+        opacity: Math.random() * 0.4 + 0.1,
       });
     }
 
@@ -40,7 +40,7 @@ export default function ParticleBackground() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((particle) => {
-        // Update position
+        // Update position with gentle floating motion
         particle.x += particle.speedX;
         particle.y += particle.speedY;
 
@@ -50,25 +50,26 @@ export default function ParticleBackground() {
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Draw particle with purple glow
+        // Draw warm dust mote with amber/gold glow
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         
-        // Create gradient for glow effect
+        // Create warm golden gradient for god-ray effect
         const gradient = ctx.createRadialGradient(
           particle.x, particle.y, 0,
-          particle.x, particle.y, particle.size * 8
+          particle.x, particle.y, particle.size * 10
         );
-        gradient.addColorStop(0, `rgba(168, 85, 247, ${particle.opacity})`);
-        gradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
+        gradient.addColorStop(0, `rgba(218, 165, 32, ${particle.opacity * 0.8})`); // Gold
+        gradient.addColorStop(0.5, `rgba(184, 134, 11, ${particle.opacity * 0.4})`); // Darker gold
+        gradient.addColorStop(1, 'rgba(139, 90, 0, 0)'); // Fade to transparent
         
         ctx.fillStyle = gradient;
         ctx.fill();
         
-        // Draw bright center
+        // Draw bright center with sepia/amber tone
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size / 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(168, 85, 247, ${particle.opacity * 1.5})`;
+        ctx.arc(particle.x, particle.y, particle.size * 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 215, 100, ${particle.opacity * 1.2})`;
         ctx.fill();
       });
 
@@ -90,7 +91,9 @@ export default function ParticleBackground() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: 'radial-gradient(circle at 50% 50%, hsl(0 0% 3%), hsl(0 0% 1%))' }}
+      style={{ 
+        background: 'radial-gradient(ellipse at 50% 20%, hsl(35 25% 12%), hsl(28 25% 8%))',
+      }}
     />
   );
 }

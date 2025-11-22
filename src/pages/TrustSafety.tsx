@@ -50,11 +50,11 @@ const TrustSafety = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header with back button */}
-      <div className="border-b border-border/50">
+      <div className="border-b-2 border-brass-border/50 leather-card">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <button
             onClick={() => navigate("/")}
-            className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+            className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 font-semibold"
           >
             ← Back
           </button>
@@ -65,10 +65,10 @@ const TrustSafety = () => {
       <div className="max-w-5xl mx-auto px-4 py-16 md:py-24">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6">
-            <Shield className="w-10 h-10 text-primary" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-6 shadow-glow embossed-border">
+            <Shield className="w-12 h-12 text-primary" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground">
+          <h1 className="text-4xl md:text-6xl font-bold font-display mb-6 text-foreground brass-glow">
             We stop 99% of fakes before they even appear
           </h1>
           <p className="text-xl md:text-2xl text-foreground/80 max-w-3xl mx-auto">
@@ -81,13 +81,13 @@ const TrustSafety = () => {
           {safetyMeasures.map((measure, index) => (
             <div
               key={index}
-              className="bg-gradient-card border border-border/50 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300"
+              className="parchment-card p-8 hover-brass transition-all duration-300"
             >
               <div className="flex gap-6 items-start">
                 {/* Number Badge */}
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary">{index + 1}</span>
+                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center shadow-inset embossed-border">
+                    <span className="text-2xl font-bold font-display text-primary">{index + 1}</span>
                   </div>
                 </div>
 
@@ -95,9 +95,9 @@ const TrustSafety = () => {
                 <div className="flex-1">
                   <div className="flex items-start gap-4 mb-4">
                     <measure.icon className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-                    <h3 className="text-2xl font-bold text-foreground">{measure.title}</h3>
+                    <h3 className="text-2xl font-bold font-display text-card-foreground">{measure.title}</h3>
                   </div>
-                  <div className="space-y-2 text-lg text-foreground/80">
+                  <div className="space-y-2 text-lg text-card-foreground/80">
                     {measure.description.map((line, i) => (
                       <p key={i}>{line}</p>
                     ))}
@@ -106,7 +106,7 @@ const TrustSafety = () => {
 
                 {/* Check Icon */}
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center embossed-border">
                     <Check className="w-6 h-6 text-primary" />
                   </div>
                 </div>
@@ -116,8 +116,8 @@ const TrustSafety = () => {
         </div>
 
         {/* Final Statement */}
-        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/30 rounded-2xl p-8 md:p-12 text-center mb-12">
-          <p className="text-xl md:text-3xl font-bold text-foreground leading-relaxed">
+        <div className="leather-card p-8 md:p-12 text-center mb-12 shadow-glow-strong">
+          <p className="text-xl md:text-3xl font-bold font-display text-foreground leading-relaxed brass-glow">
             Casual fakes = impossible. Serious fraud = financial suicide. Real family history = protected and rewarded forever.
           </p>
         </div>
@@ -127,7 +127,7 @@ const TrustSafety = () => {
           <Button
             size="lg"
             onClick={() => navigate("/")}
-            className="text-lg px-12 py-6 rounded-full bg-primary hover:bg-primary/90 text-white shadow-glow transform hover:scale-105 transition-all duration-300"
+            className="text-lg px-12 py-6"
           >
             Got it – back to scanning
           </Button>

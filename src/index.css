@@ -8,92 +8,117 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 2%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 265 100% 70%;
-    --primary-light: 265 100% 80%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 265 80% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 265 100% 70%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 265 100% 70%;
-    --input: 0 0% 15%;
-    --ring: 265 100% 70%;
-    --radius: 1rem;
+    /* 1920s Luxurious Hidden-Object Adventure Game Palette */
+    --background: 28 25% 8%;        /* Deep mahogany brown */
+    --foreground: 40 65% 92%;       /* Aged parchment beige */
+    --card: 30 20% 12%;             /* Dark wood panel */
+    --card-foreground: 40 65% 92%;
+    --popover: 30 22% 15%;
+    --popover-foreground: 40 65% 92%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(265 100% 70%), hsl(265 100% 80%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 5% / 0.4), hsl(0 0% 3% / 0.3));
-    --shadow-glow: 0 0 80px hsl(265 100% 70% / 0.4);
-    --shadow-glow-strong: 0 0 120px hsl(265 100% 70% / 0.6);
-    --glass-bg: hsl(0 0% 10% / 0.15);
-    --glass-border: hsl(265 100% 70% / 0.3);
+    --primary: 42 88% 55%;          /* Rich amber/gold */
+    --primary-light: 45 95% 65%;    /* Lighter gold highlight */
+    --primary-foreground: 30 25% 10%;
+    
+    --secondary: 35 45% 35%;        /* Warm brass */
+    --secondary-foreground: 40 65% 92%;
+    
+    --muted: 32 18% 22%;            /* Muted brown */
+    --muted-foreground: 38 35% 65%;
+    
+    --accent: 38 75% 50%;           /* Sepia accent */
+    --accent-foreground: 40 65% 92%;
+    
+    --destructive: 0 75% 45%;
+    --destructive-foreground: 40 65% 92%;
+    
+    --border: 38 45% 35%;           /* Brass border */
+    --input: 30 20% 15%;
+    --ring: 42 88% 55%;
+    --radius: 0.75rem;
+    
+    /* Vintage Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(42 88% 55%), hsl(45 95% 65%));
+    --gradient-card: linear-gradient(180deg, hsl(30 20% 12% / 0.9), hsl(28 25% 8% / 0.95));
+    --gradient-leather: linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%));
+    
+    /* Warm Glow Effects */
+    --shadow-glow: 0 8px 32px hsl(42 88% 45% / 0.35);
+    --shadow-glow-strong: 0 12px 48px hsl(42 88% 50% / 0.5);
+    --shadow-inset: inset 0 2px 8px hsl(28 25% 5% / 0.6);
+    
+    /* Parchment & Brass */
+    --parchment-bg: hsl(42 45% 88% / 0.95);
+    --parchment-border: hsl(38 35% 65%);
+    --brass-bg: hsl(38 60% 45%);
+    --brass-border: hsl(35 55% 38%);
   }
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-glass-bg backdrop-blur-xl border border-glass-border rounded-2xl;
+  /* Leather-bound Book Cards */
+  .leather-card {
+    @apply bg-gradient-leather border-2 border-brass-border rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)];
+    background-image: 
+      var(--gradient-leather),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
   }
   
-  .glass-card-strong {
-    @apply bg-glass-bg backdrop-blur-3xl border-2 border-glass-border rounded-2xl shadow-glow;
+  /* Aged Parchment Cards */
+  .parchment-card {
+    @apply bg-parchment-bg border-2 border-parchment-border rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.4)];
+    background-image: 
+      radial-gradient(circle at 20% 30%, rgba(120,80,40,0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(100,70,40,0.04) 0%, transparent 50%);
   }
   
-  .neon-glow {
-    @apply text-primary drop-shadow-[0_0_20px_hsl(265_100%_70%_/_0.7)];
+  /* Brass/Gold Glow */
+  .brass-glow {
+    @apply text-primary drop-shadow-[0_0_12px_rgba(218,165,32,0.6)];
   }
   
-  .neon-border {
-    @apply border border-primary shadow-[0_0_20px_hsl(265_100%_70%_/_0.5)];
+  /* Embossed Border Effect */
+  .embossed-border {
+    @apply border-2 border-brass-border shadow-[inset_0_1px_2px_rgba(255,255,255,0.2),inset_0_-1px_2px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.4)];
   }
   
-  .hover-glow {
-    @apply transition-all duration-300 hover:shadow-glow-strong hover:border-primary-light;
+  /* Vintage Hover Effect */
+  .hover-brass {
+    @apply transition-all duration-300 hover:shadow-glow-strong hover:border-primary-light hover:scale-[1.02];
   }
   
-  @keyframes float-particle {
-    0%, 100% { transform: translate(0, 0); opacity: 0.3; }
-    50% { transform: translate(var(--x), var(--y)); opacity: 0.6; }
+  /* Dust Mote Float Animation */
+  @keyframes float-dust {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; }
+    50% { transform: translate(var(--x), var(--y)) rotate(180deg); opacity: 0.5; }
   }
   
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 40px hsl(265 100% 70% / 0.4); }
-    50% { box-shadow: 0 0 80px hsl(265 100% 70% / 0.8); }
+  /* Warm Brass Glow Pulse */
+  @keyframes pulse-brass-glow {
+    0%, 100% { box-shadow: 0 0 30px hsl(42 88% 45% / 0.3); }
+    50% { box-shadow: 0 0 50px hsl(42 88% 50% / 0.6); }
   }
   
-  @keyframes diamond-spin {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.2); }
-    100% { transform: rotate(360deg) scale(1); }
+  /* Vintage Shimmer */
+  @keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
   }
   
-  @keyframes particle-burst {
-    0% { transform: translate(0, 0) scale(0); opacity: 1; }
-    100% { transform: translate(var(--burst-x), var(--burst-y)) scale(1); opacity: 0; }
+  .animate-pulse-brass {
+    animation: pulse-brass-glow 3s ease-in-out infinite;
   }
   
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(218,165,32,0.2), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
   }
   
-  .animate-diamond-spin {
-    animation: diamond-spin 3s ease-in-out infinite;
-  }
-  
-  .particle-bg {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
+  /* Vintage Texture Background */
+  .vintage-texture {
+    background-image: 
+      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05' /%3E%3C/svg%3E");
   }
 }
 
@@ -103,6 +128,19 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground vintage-texture;
+    font-family: 'Crimson Text', 'Georgia', serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', 'Georgia', serif;
+  }
+  
+  .font-display {
+    font-family: 'Playfair Display', 'Georgia', serif;
+  }
+  
+  .font-title {
+    font-family: 'Cinzel', 'Georgia', serif;
   }
 }
