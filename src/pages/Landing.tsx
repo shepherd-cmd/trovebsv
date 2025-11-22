@@ -4,7 +4,6 @@ import { useTroveStore } from "@/store/useTroveStore";
 import { Button } from "@/components/ui/button";
 import { Shield, TrendingUp, Search, Zap, FileText } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
-import { OnboardingStory } from "@/components/OnboardingStory";
 import { StepModal } from "@/components/StepModal";
 import libraryBg from "@/assets/hero-library-bg.jpg";
 import { AmbientSound } from "@/components/AmbientSound";
@@ -12,15 +11,10 @@ import { AmbientSound } from "@/components/AmbientSound";
 const Landing = () => {
   const navigate = useNavigate();
   const { balanceBSV } = useTroveStore();
-  const [showOnboarding, setShowOnboarding] = useState(true);
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
 
   const handleOpenCamera = () => {
     navigate("/scan");
-  };
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
   };
 
   return (
@@ -39,17 +33,6 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Onboarding Overlay */}
-      {showOnboarding && (
-        <div 
-          className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm transition-opacity duration-1000"
-          style={{
-            animation: showOnboarding ? 'none' : 'fadeOut 1s ease-out forwards'
-          }}
-        >
-          <OnboardingStory onComplete={handleOnboardingComplete} />
-        </div>
-      )}
 
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 md:pt-0" style={{ paddingTop: 'max(8rem, calc(5rem + env(safe-area-inset-top)))' }}>
         <div className="absolute inset-0 z-0">
@@ -133,11 +116,33 @@ const Landing = () => {
               <div key={idx} className="relative">
                 <button
                   onClick={() => setSelectedStep(item.step)}
-                  className="w-full parchment-card p-10 text-center hover-brass group cursor-pointer transition-all hover:scale-105"
+                  className="w-full parchment-card p-10 text-center group cursor-pointer transition-all hover:scale-105 relative overflow-hidden"
+                  style={{
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                  }}
                 >
-                  <div className="text-7xl mb-4 group-hover:scale-110 transition-transform">{item.emoji}</div>
-                  <h3 className="text-2xl font-bold font-display mb-2 brass-glow text-primary">Step {item.step}: {item.title}</h3>
-                  <p className="text-muted-foreground text-lg">{item.desc}</p>
+                  {/* Golden glow effect on hover */}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    style={{
+                      background: 'radial-gradient(circle at center, rgba(218, 165, 32, 0.15) 0%, transparent 70%)',
+                      boxShadow: 'inset 0 0 20px rgba(218, 165, 32, 0.3)',
+                    }}
+                  />
+                  
+                  <div className="text-7xl mb-4 group-hover:scale-110 transition-transform relative z-10">{item.emoji}</div>
+                  <h3 className="text-2xl font-bold font-display mb-2 brass-glow text-primary relative z-10 group-hover:drop-shadow-[0_0_8px_rgba(218,165,32,0.6)] transition-all">
+                    Step {item.step}: {item.title}
+                  </h3>
+                  <p className="text-muted-foreground text-lg relative z-10">{item.desc}</p>
+                  
+                  {/* Subtle golden underline on hover */}
+                  <div 
+                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 w-0 group-hover:w-3/4 transition-all duration-300"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, hsl(42 88% 55%), transparent)',
+                    }}
+                  />
                 </button>
                 {idx < 2 && (
                   <div className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2 text-primary text-4xl brass-glow">
