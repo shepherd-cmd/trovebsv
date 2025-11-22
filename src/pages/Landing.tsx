@@ -27,7 +27,7 @@ const Landing = () => {
             to="/trust-safety"
             className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors group"
           >
-            <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <Shield className="w-5 h-5 group-hover:scale-110 transition-transform text-brass-bg" />
             <span className="text-sm font-semibold font-display">Trust & Safety</span>
           </Link>
         </div>
@@ -232,7 +232,10 @@ const Landing = () => {
               }
             ].map((item, idx) => (
               <div key={idx} className="leather-card p-10 text-center hover-brass group">
-                <item.icon className="w-20 h-20 brass-glow mx-auto mb-6 group-hover:scale-110 transition-transform text-primary" />
+                <item.icon 
+                  className="w-20 h-20 brass-glow mx-auto mb-6 group-hover:scale-110 transition-transform" 
+                  style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)', fill: 'none' }}
+                />
                 <h3 className="text-2xl font-bold font-display mb-4 text-primary">{item.title}</h3>
                 <p className="text-lg text-muted-foreground">{item.desc}</p>
               </div>
@@ -267,7 +270,10 @@ const Landing = () => {
           {/* Search Box Mockup */}
           <div className="parchment-card p-8 mb-12 max-w-3xl mx-auto shadow-glow">
             <div className="relative mb-8">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" />
+              <Search 
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6" 
+                style={{ color: 'hsl(38 60% 45%)' }}
+              />
               <input
                 type="text"
                 placeholder="Search millions of historical documents..."
@@ -288,7 +294,10 @@ const Landing = () => {
                   key={idx}
                   className="bg-background/50 border border-brass-border/50 rounded-lg px-4 py-3 text-card-foreground hover:border-primary hover:bg-background/70 transition-all cursor-pointer"
                 >
-                  <Search className="inline w-4 h-4 mr-2 text-primary" />
+                  <Search 
+                    className="inline w-4 h-4 mr-2" 
+                    style={{ color: 'hsl(42 88% 55%)' }}
+                  />
                   {search}
                 </div>
               ))}

@@ -66,7 +66,10 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Book className="h-10 w-10 text-primary brass-glow" />
+              <Book 
+                className="h-10 w-10 brass-glow" 
+                style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+              />
               <div>
                 <h1 className="text-3xl font-bold font-display bg-gradient-primary bg-clip-text text-transparent">
                   Trove
@@ -80,11 +83,11 @@ const Index = () => {
                 size="sm"
                 onClick={() => setShowUpload(!showUpload)}
               >
-                <Upload className="mr-2 h-4 w-4" />
+                <Upload className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
                 Upload Document
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
+                <LogOut className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
                 Sign Out
               </Button>
             </div>
@@ -103,7 +106,10 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="parchment-card p-6 hover-brass">
             <div className="flex items-center gap-3">
-              <FileText className="h-10 w-10 text-primary brass-glow" />
+              <FileText 
+                className="h-10 w-10 brass-glow" 
+                style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+              />
               <div>
                 <p className="text-sm text-muted-foreground font-semibold">Documents</p>
                 <p className="text-3xl font-bold font-display text-primary">{documents.length}</p>
@@ -112,7 +118,10 @@ const Index = () => {
           </div>
           <div className="parchment-card p-6 hover-brass">
             <div className="flex items-center gap-3">
-              <Trophy className="h-10 w-10 text-secondary brass-glow" />
+              <Trophy 
+                className="h-10 w-10 brass-glow" 
+                style={{ color: 'hsl(35 45% 35%)', stroke: 'hsl(35 45% 35%)', fill: 'none' }}
+              />
               <div>
                 <p className="text-sm text-muted-foreground font-semibold">Avg Rarity</p>
                 <p className="text-3xl font-bold font-display text-secondary">
@@ -125,7 +134,10 @@ const Index = () => {
           </div>
           <div className="parchment-card p-6 hover-brass">
             <div className="flex items-center gap-3">
-              <Coins className="h-10 w-10 text-accent brass-glow" />
+              <Coins 
+                className="h-10 w-10 brass-glow" 
+                style={{ color: 'hsl(42 88% 55%)', stroke: 'hsl(42 88% 55%)' }}
+              />
               <div>
                 <p className="text-sm text-muted-foreground font-semibold">Total Value</p>
                 <p className="text-3xl font-bold font-display text-accent">
@@ -141,13 +153,16 @@ const Index = () => {
           <h2 className="text-3xl font-bold font-display mb-8 text-foreground brass-glow text-center">Your Collection</h2>
           {documents.length === 0 ? (
             <div className="text-center py-16 parchment-card shadow-glow-strong">
-              <FileText className="h-20 w-20 text-muted-foreground mx-auto mb-4 opacity-40" />
+              <FileText 
+                className="h-20 w-20 mx-auto mb-4 opacity-40" 
+                style={{ color: 'hsl(38 35% 45%)', stroke: 'hsl(38 35% 45%)' }}
+              />
               <h3 className="text-2xl font-semibold font-display mb-2">No documents yet</h3>
               <p className="text-muted-foreground mb-6 text-lg font-body">
                 Start preserving history by uploading your first document
               </p>
               <Button onClick={() => setShowUpload(true)} size="lg">
-                <Upload className="mr-2 h-4 w-4" />
+                <Upload className="mr-2 h-4 w-4" style={{ color: 'hsl(30 25% 10%)' }} />
                 Upload Your First Document
               </Button>
             </div>
