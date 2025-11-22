@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, TrendingUp, Search, Zap, FileText } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import { OnboardingStory } from "@/components/OnboardingStory";
+import { StepModal } from "@/components/StepModal";
 import libraryBg from "@/assets/hero-library-bg.jpg";
 import { AmbientSound } from "@/components/AmbientSound";
 
@@ -12,6 +13,7 @@ const Landing = () => {
   const navigate = useNavigate();
   const { balanceBSV } = useTroveStore();
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [selectedStep, setSelectedStep] = useState<number | null>(null);
 
   const handleOpenCamera = () => {
     navigate("/scan");
@@ -129,11 +131,14 @@ const Landing = () => {
               { step: 3, title: "Own Forever", desc: "Inscribed on BSV #47291", emoji: "💎" }
             ].map((item, idx) => (
               <div key={idx} className="relative">
-                <div className="parchment-card p-10 text-center hover-brass group">
+                <button
+                  onClick={() => setSelectedStep(item.step)}
+                  className="w-full parchment-card p-10 text-center hover-brass group cursor-pointer transition-all hover:scale-105"
+                >
                   <div className="text-7xl mb-4 group-hover:scale-110 transition-transform">{item.emoji}</div>
                   <h3 className="text-2xl font-bold font-display mb-2 brass-glow text-primary">Step {item.step}: {item.title}</h3>
                   <p className="text-muted-foreground text-lg">{item.desc}</p>
-                </div>
+                </button>
                 {idx < 2 && (
                   <div className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2 text-primary text-4xl brass-glow">
                     →
@@ -317,6 +322,13 @@ const Landing = () => {
       </section>
 
       <AmbientSound />
+      
+      {/* Step Modals */}
+      <StepModal 
+        isOpen={selectedStep !== null} 
+        onClose={() => setSelectedStep(null)} 
+        step={selectedStep || 1}
+      />
     </div>
   );
 };
