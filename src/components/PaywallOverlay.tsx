@@ -18,7 +18,7 @@ interface PaywallOverlayProps {
 
 export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlayProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const unlockPrice = 250; // satoshis (~$0.10-$0.20)
+  const unlockPrice = 300; // satoshis (~$0.10-$0.20)
   const bsvPrice = unlockPrice / 100000000; // Convert sats to BSV
 
   const handleUnlock = async () => {
