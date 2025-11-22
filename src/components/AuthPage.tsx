@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { FileText } from "lucide-react";
+import { Book } from "lucide-react";
 
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -72,20 +72,20 @@ export function AuthPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center mb-4">
-            <FileText className="h-12 w-12 text-primary" />
+            <Book className="h-16 w-16 text-primary brass-glow" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            BSV Archive
+          <h1 className="text-5xl font-bold font-display bg-gradient-primary bg-clip-text text-transparent">
+            Trove
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg font-body">
             Preserve history, earn forever
           </p>
         </div>
 
-        <Card className="bg-gradient-card border-border/50">
-          <CardHeader>
-            <CardTitle>{isLogin ? "Sign In" : "Create Account"}</CardTitle>
-            <CardDescription>
+        <Card className="shadow-glow-strong">
+          <CardHeader className="text-center">
+            <CardTitle className="font-display text-2xl">{isLogin ? "Sign In" : "Create Account"}</CardTitle>
+            <CardDescription className="text-base">
               {isLogin
                 ? "Welcome back! Sign in to continue preserving history"
                 : "Join the global data treasure hunt"}
@@ -95,45 +95,45 @@ export function AuthPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div>
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username" className="font-semibold">Username</Label>
                   <Input
                     id="username"
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required={!isLogin}
-                    className="mt-2"
+                    className="mt-2 bg-background/50"
                   />
                 </div>
               )}
               
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="font-semibold">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="mt-2"
+                  className="mt-2 bg-background/50"
                 />
               </div>
 
               <div>
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="font-semibold">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="mt-2"
+                  className="mt-2 bg-background/50"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-primary hover:opacity-90"
+                className="w-full text-base"
                 disabled={loading}
               >
                 {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
