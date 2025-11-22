@@ -44,9 +44,7 @@ export const embedWatermark = (imageDataUrl: string, txid: string): Promise<stri
 
       ctx.putImageData(imageData, 0, 0);
       
-      // Return watermarked image as data URL
       const watermarkedImage = canvas.toDataURL('image/png', 1.0);
-      console.log('Watermark embedded successfully');
       resolve(watermarkedImage);
     };
     img.onerror = () => reject(new Error('Failed to load image'));
@@ -94,10 +92,8 @@ export const extractWatermark = (imageDataUrl: string): Promise<string | null> =
         message += String.fromCharCode(charCode);
       }
 
-      // Validate format
       if (message.startsWith('TROVE:')) {
         const txid = message.substring(6);
-        console.log('Watermark extracted:', txid);
         resolve(txid);
       } else {
         resolve(null);

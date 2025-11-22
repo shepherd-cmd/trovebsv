@@ -191,7 +191,7 @@ const Treasury = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/app")}
+                onClick={() => navigate("/")}
               >
                 <Home className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
                 Home
@@ -509,8 +509,7 @@ const Treasury = () => {
               <Button 
                 className="brass-button"
                 onClick={() => {
-                  // TODO: Implement donation flow
-                  console.log('Donate clicked');
+                  // Donation flow placeholder
                 }}
               >
                 <Coins className="mr-2 h-4 w-4" />

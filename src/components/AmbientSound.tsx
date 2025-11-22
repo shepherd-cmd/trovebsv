@@ -27,7 +27,7 @@ export const AmbientSound = () => {
           await audio.play();
           setIsPlaying(true);
         } catch (error) {
-          console.log('Autoplay prevented - user interaction required');
+          // Autoplay prevented
         }
       };
       playAudio();

@@ -6,13 +6,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HandCashProvider, useHandCash } from "@/contexts/HandCashContext";
 import { HandCashConnectModal } from "@/components/HandCashConnectModal";
 import Landing from "./pages/Landing";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import TrustSafety from "./pages/TrustSafety";
+import Scan from "./pages/scan";
+import Vault from "./pages/TheVault";
 import MyVault from "./pages/MyVault";
-import TheVault from "./pages/TheVault";
 import Treasury from "./pages/Treasury";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -28,13 +26,10 @@ function AppContent() {
       />
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/app" element={<Index />} />
-        <Route path="/vault" element={<MyVault />} />
-        <Route path="/the-vault" element={<TheVault />} />
+        <Route path="/scan" element={<Scan />} />
+        <Route path="/vault" element={<Vault />} />
+        <Route path="/my-vault" element={<MyVault />} />
         <Route path="/treasury" element={<Treasury />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/trust-safety" element={<TrustSafety />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

@@ -166,16 +166,12 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
         stream.getTracks().forEach(track => track.stop());
       }
 
-      // Run provenance analysis
       setIsAnalyzing(true);
       try {
         const provenanceResult = await analyzeProvenance(imageData);
         setProvenanceScore(provenanceResult.score);
         setProvenanceDescription(provenanceResult.description);
-        console.log('Provenance analysis complete:', provenanceResult);
       } catch (error) {
-        console.error('Provenance analysis failed:', error);
-        // Set default values on error
         setProvenanceScore(85);
         setProvenanceDescription('Basic authenticity check passed');
       } finally {

@@ -166,7 +166,7 @@ const TheVault = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/app")}
+                onClick={() => navigate("/")}
               >
                 <Home className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
                 Home
