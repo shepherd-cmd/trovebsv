@@ -21,7 +21,7 @@ const Landing = () => {
       <ParticleBackground />
       
       {/* Top Bar with Shield Icon */}
-      <div className="fixed top-0 left-0 right-0 z-50 leather-card border-b-2 border-brass-border/50 backdrop-blur-sm">
+      <div className="fixed top-0 left-0 right-0 z-50 leather-card border-b-2 border-brass-border/50 backdrop-blur-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
           <Link
             to="/trust-safety"
@@ -34,7 +34,7 @@ const Landing = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-0">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 md:pt-0" style={{ paddingTop: 'max(8rem, calc(5rem + env(safe-area-inset-top)))' }}>
         {/* Moody Antique Library Background */}
         <div className="absolute inset-0 z-0">
           <div 
@@ -337,7 +337,7 @@ const Landing = () => {
       </section>
 
       {/* Sticky Bottom Bar (Mobile) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 leather-card border-t-2 border-brass-border/50 backdrop-blur-md p-4 z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 leather-card border-t-2 border-brass-border/50 backdrop-blur-md p-4 z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <Button
           size="lg"
           onClick={() => navigate("/app")}
