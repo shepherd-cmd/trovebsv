@@ -31,6 +31,7 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [provenanceScore, setProvenanceScore] = useState<number | null>(null);
   const [provenanceDescription, setProvenanceDescription] = useState<string>("");
+  const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filterCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -285,6 +286,56 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
     navigate("/app");
   };
 
+  const getForensicCertificate = async () => {
+    if (!capturedImage) return;
+    
+    setIsGeneratingCertificate(true);
+    
+    try {
+      // Check if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert("Please sign in to purchase forensic certificate");
+        navigate("/auth");
+        return;
+      }
+
+      // Call edge function to process payment and generate certificate
+      const { data, error } = await supabase.functions.invoke('generate-forensic-certificate', {
+        body: { 
+          imageUrl: capturedImage,
+          basicProvenanceScore: provenanceScore,
+          basicProvenanceDescription: provenanceDescription
+        }
+      });
+
+      if (error) throw error;
+
+      // Download the PDF
+      const pdfBlob = new Blob([Uint8Array.from(atob(data.pdfBase64), c => c.charCodeAt(0))], { 
+        type: 'application/pdf' 
+      });
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `forensic-certificate-${Date.now()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert(`✅ Forensic Certificate Generated!\n\n2000 sats paid to treasury.\nYour detailed certificate has been downloaded.`);
+      
+      haptics.success();
+    } catch (error) {
+      console.error("Certificate generation error:", error);
+      alert("Failed to generate certificate. Please try again.");
+    } finally {
+      setIsGeneratingCertificate(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-background">
       {/* Loading Animation */}
@@ -409,12 +460,37 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
 
           {/* Provenance Badge */}
           {provenanceScore !== null && !isAnalyzing && (
-            <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-10 w-11/12 max-w-md"
+            <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-10 w-11/12 max-w-md space-y-3"
                  style={{ paddingTop: 'env(safe-area-inset-top)' }}>
               <ProvenanceBadge 
                 score={provenanceScore} 
                 description={provenanceDescription}
               />
+              
+              {/* Forensic Certificate Button */}
+              <button
+                onClick={getForensicCertificate}
+                disabled={isGeneratingCertificate}
+                className="w-full py-3 px-6 rounded-lg font-display font-bold text-sm transition-all"
+                style={{
+                  background: isGeneratingCertificate 
+                    ? 'linear-gradient(145deg, hsl(0 0% 30%), hsl(0 0% 20%))'
+                    : 'linear-gradient(145deg, hsl(38 60% 50%), hsl(38 60% 35%))',
+                  boxShadow: '0 4px 12px rgba(218, 165, 32, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
+                  border: '2px solid hsl(38 70% 40%)',
+                  color: isGeneratingCertificate ? 'hsl(38 60% 40%)' : 'hsl(30 25% 10%)',
+                  opacity: isGeneratingCertificate ? 0.6 : 1,
+                }}
+              >
+                {isGeneratingCertificate ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                    Analyzing...
+                  </span>
+                ) : (
+                  <>🔬 Get Full Forensic Certificate – 2000 sats</>
+                )}
+              </button>
             </div>
           )}
 

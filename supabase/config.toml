@@ -1,1 +1,19 @@
 project_id = "fhcrbzialynsscdaxaah"
+
+[functions.get-treasury-balance]
+verify_jwt = false
+
+[functions.increment-earnings]
+verify_jwt = true
+
+[functions.inscribe-document]
+verify_jwt = true
+
+[functions.process-payment]
+verify_jwt = true
+
+[functions.sponsor-inscription]
+verify_jwt = true
+
+[functions.generate-forensic-certificate]
+verify_jwt = true
