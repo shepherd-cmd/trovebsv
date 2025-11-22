@@ -19,6 +19,8 @@ export default {
         'body': ['Crimson Text', 'Georgia', 'serif'],
         'sans': ['Crimson Text', 'Georgia', 'serif'],
         'serif': ['Playfair Display', 'Georgia', 'serif'],
+        'handwriting': ['Caveat', 'Dancing Script', 'cursive'],
+        'script': ['Dancing Script', 'Caveat', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",

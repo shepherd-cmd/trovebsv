@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import DocumentUploadFlow from "@/components/DocumentUploadFlow";
 import { DocumentCard } from "@/components/DocumentCard";
 import { Button } from "@/components/ui/button";
-import { FileText, LogOut, Upload, Trophy } from "lucide-react";
+import { Book, LogOut, Upload, Trophy, Coins, FileText } from "lucide-react";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -62,16 +62,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b-2 border-brass-border/50 leather-card backdrop-blur-sm sticky top-0 z-10 shadow-glow">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <FileText className="h-8 w-8 text-primary" />
+              <Book className="h-10 w-10 text-primary brass-glow" />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  BSV Archive
+                <h1 className="text-3xl font-bold font-display bg-gradient-primary bg-clip-text text-transparent">
+                  Trove
                 </h1>
-                <p className="text-xs text-muted-foreground">Preserve history, earn forever</p>
+                <p className="text-xs text-muted-foreground font-body">Preserve history, earn forever</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -100,22 +100,22 @@ const Index = () => {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-gradient-card border border-border/50 rounded-lg p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="parchment-card p-6 hover-brass">
             <div className="flex items-center gap-3">
-              <FileText className="h-8 w-8 text-primary" />
+              <FileText className="h-10 w-10 text-primary brass-glow" />
               <div>
-                <p className="text-sm text-muted-foreground">Documents</p>
-                <p className="text-2xl font-bold">{documents.length}</p>
+                <p className="text-sm text-muted-foreground font-semibold">Documents</p>
+                <p className="text-3xl font-bold font-display text-primary">{documents.length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-gradient-card border border-border/50 rounded-lg p-6">
+          <div className="parchment-card p-6 hover-brass">
             <div className="flex items-center gap-3">
-              <Trophy className="h-8 w-8 text-secondary" />
+              <Trophy className="h-10 w-10 text-secondary brass-glow" />
               <div>
-                <p className="text-sm text-muted-foreground">Avg Rarity</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm text-muted-foreground font-semibold">Avg Rarity</p>
+                <p className="text-3xl font-bold font-display text-secondary">
                   {documents.length > 0
                     ? Math.round(documents.reduce((acc, d) => acc + d.rarity_score, 0) / documents.length)
                     : 0}
@@ -123,12 +123,12 @@ const Index = () => {
               </div>
             </div>
           </div>
-          <div className="bg-gradient-card border border-border/50 rounded-lg p-6">
+          <div className="parchment-card p-6 hover-brass">
             <div className="flex items-center gap-3">
-              <FileText className="h-8 w-8 text-accent" />
+              <Coins className="h-10 w-10 text-accent brass-glow" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Value</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm text-muted-foreground font-semibold">Total Value</p>
+                <p className="text-3xl font-bold font-display text-accent">
                   {documents.reduce((acc, d) => acc + (d.price_per_page * d.total_pages || 0), 0).toFixed(4)} BSV
                 </p>
               </div>
@@ -138,21 +138,30 @@ const Index = () => {
 
         {/* Documents Grid */}
         <div>
-          <h2 className="text-2xl font-bold mb-6">Your Documents</h2>
+          <h2 className="text-3xl font-bold font-display mb-8 text-foreground brass-glow text-center">Your Collection</h2>
           {documents.length === 0 ? (
-            <div className="text-center py-12 bg-gradient-card border border-border/50 rounded-lg">
-              <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No documents yet</h3>
-              <p className="text-muted-foreground mb-6">
+            <div className="text-center py-16 parchment-card shadow-glow-strong">
+              <FileText className="h-20 w-20 text-muted-foreground mx-auto mb-4 opacity-40" />
+              <h3 className="text-2xl font-semibold font-display mb-2">No documents yet</h3>
+              <p className="text-muted-foreground mb-6 text-lg font-body">
                 Start preserving history by uploading your first document
               </p>
-              <Button onClick={() => setShowUpload(true)} className="bg-gradient-primary hover:opacity-90">
+              <Button onClick={() => setShowUpload(true)} size="lg">
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Your First Document
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 py-8 px-4"
+              style={{
+                background: 'linear-gradient(180deg, rgba(30, 20, 10, 0.3) 0%, rgba(40, 30, 20, 0.2) 100%)',
+                backgroundImage: `
+                  repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(139, 90, 0, 0.02) 50px, rgba(139, 90, 0, 0.02) 100px),
+                  repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(139, 90, 0, 0.02) 50px, rgba(139, 90, 0, 0.02) 100px)
+                `,
+              }}
+            >
               {documents.map((doc) => (
                 <DocumentCard
                   key={doc.id}
