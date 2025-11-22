@@ -15,6 +15,7 @@ const Landing = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [isLoadingCamera, setIsLoadingCamera] = useState(false);
+  const [cameraPermissionGranted, setCameraPermissionGranted] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -62,6 +63,7 @@ const Landing = () => {
 
   const handleCameraSuccess = () => {
     setIsLoadingCamera(false);
+    setCameraPermissionGranted(true);
   };
 
   return (
@@ -103,78 +105,63 @@ const Landing = () => {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto py-12 md:py-0">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold font-display mb-6 md:mb-8 leading-[1.1] text-primary animate-fade-in" 
-              style={{ 
-                textShadow: '0 4px 20px rgba(218, 165, 32, 0.6), 0 2px 8px rgba(184, 134, 11, 0.4), 0 0 40px rgba(218, 165, 32, 0.3)',
-                animationDelay: '0s'
-              }}>
-            Turn your collection into perpetual Bitcoin royalties
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 md:mb-12 text-foreground/95 font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed px-2 drop-shadow-lg" style={{ animationDelay: '0.2s' }}>
-            Scan anything rare hiding in your house<br className="hidden sm:block" />
-            <span className="text-accent/90 block mt-2 sm:inline sm:mt-0">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
-            <br /><br className="hidden sm:block" />
-            One tap inscribes it forever on BSV<br className="hidden sm:block" />
-            <span className="block sm:inline mt-2 sm:mt-0">You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.</span>
-          </p>
+        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto py-12 md:py-0 flex flex-col items-center justify-center min-h-screen">
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold font-display mb-6 md:mb-8 leading-[1.1] text-primary animate-fade-in" 
+                style={{ 
+                  textShadow: '0 4px 20px rgba(218, 165, 32, 0.6), 0 2px 8px rgba(184, 134, 11, 0.4), 0 0 40px rgba(218, 165, 32, 0.3)',
+                  animationDelay: '0s'
+                }}>
+              Turn your collection into perpetual Bitcoin royalties
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 md:mb-12 text-foreground/95 font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed px-2 drop-shadow-lg" style={{ animationDelay: '0.2s' }}>
+              Scan anything rare hiding in your house<br className="hidden sm:block" />
+              <span className="text-accent/90 block mt-2 sm:inline sm:mt-0">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
+              <br /><br className="hidden sm:block" />
+              One tap inscribes it forever on BSV<br className="hidden sm:block" />
+              <span className="block sm:inline mt-2 sm:mt-0">You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.</span>
+            </p>
+          </div>
           
-          {/* CTA Buttons Container */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            {/* Main Camera CTA Button */}
+          {/* Single Heroic Button - Positioned at bottom third */}
+          <div className="pb-20 md:pb-32">
             <button
               onClick={handleOpenCamera}
               disabled={isLoadingCamera}
-              className="group relative inline-flex items-center justify-center px-12 md:px-16 py-6 md:py-8 text-xl md:text-2xl lg:text-3xl font-bold font-display text-foreground overflow-hidden rounded-lg animate-fade-in hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="group relative inline-flex items-center justify-center px-16 md:px-24 py-8 md:py-12 text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-display text-foreground overflow-hidden rounded-2xl animate-fade-in hover:scale-[1.05] active:scale-95 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
               style={{ 
                 animationDelay: '0.4s',
                 background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 215, 100, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(218, 165, 32, 0.3)',
-                border: '3px solid hsl(38 60% 35%)',
-                textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(218, 165, 32, 0.4)',
+                boxShadow: '0 12px 48px rgba(0, 0, 0, 0.7), inset 0 3px 6px rgba(255, 215, 100, 0.15), inset 0 -3px 6px rgba(0, 0, 0, 0.6), 0 0 60px rgba(218, 165, 32, 0.4)',
+                border: '4px solid hsl(38 60% 35%)',
+                textShadow: '0 3px 10px rgba(0, 0, 0, 0.9), 0 0 30px rgba(218, 165, 32, 0.5)',
               }}
             >
-              {/* Leather texture overlay */}
-              <div className="absolute inset-0 opacity-30 pointer-events-none" 
+              {/* Embossed leather texture overlay */}
+              <div className="absolute inset-0 opacity-40 pointer-events-none" 
                    style={{
-                     backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px),
-                                      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px)`
+                     backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px),
+                                      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px)`
                    }} 
               />
               
-              {/* Brass corner decorations */}
-              <div className="absolute top-1 left-1 w-6 h-6 border-t-2 border-l-2 border-primary/60" />
-              <div className="absolute top-1 right-1 w-6 h-6 border-t-2 border-r-2 border-primary/60" />
-              <div className="absolute bottom-1 left-1 w-6 h-6 border-b-2 border-l-2 border-primary/60" />
-              <div className="absolute bottom-1 right-1 w-6 h-6 border-b-2 border-r-2 border-primary/60" />
+              {/* Brass corner decorations - larger */}
+              <div className="absolute top-2 left-2 w-10 h-10 border-t-4 border-l-4 border-primary/70" />
+              <div className="absolute top-2 right-2 w-10 h-10 border-t-4 border-r-4 border-primary/70" />
+              <div className="absolute bottom-2 left-2 w-10 h-10 border-b-4 border-l-4 border-primary/70" />
+              <div className="absolute bottom-2 right-2 w-10 h-10 border-b-4 border-r-4 border-primary/70" />
               
-              {/* Shimmer effect on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-shimmer" />
+              {/* Golden glow on hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer rounded-2xl" />
               
               {isLoadingCamera ? (
-                <Hourglass className="mr-3 w-7 h-7 md:w-8 md:h-8 relative z-10 text-primary animate-spin" />
+                <Hourglass className="mr-4 w-10 h-10 md:w-12 md:h-12 relative z-10 text-primary animate-spin" />
               ) : (
-                <Book className="mr-3 w-7 h-7 md:w-8 md:h-8 relative z-10 text-primary group-hover:scale-110 transition-transform" />
+                <Camera className="mr-4 w-10 h-10 md:w-12 md:h-12 relative z-10 text-primary group-hover:scale-110 transition-transform" />
               )}
               <span className="relative z-10 brass-glow">
                 {isLoadingCamera ? "Opening Camera..." : "Begin Your Discovery – Free"}
               </span>
-            </button>
-
-            {/* Upload from Gallery Button */}
-            <button
-              onClick={() => navigate("/app")}
-              className="group relative inline-flex items-center justify-center px-8 md:px-12 py-6 md:py-8 text-lg md:text-xl lg:text-2xl font-semibold font-display text-foreground overflow-hidden rounded-lg animate-fade-in hover:scale-[1.02] transition-all duration-300"
-              style={{ 
-                animationDelay: '0.5s',
-                background: 'linear-gradient(145deg, hsl(35 20% 22%), hsl(30 18% 16%))',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 215, 100, 0.1), inset 0 -1px 2px rgba(0, 0, 0, 0.4)',
-                border: '2px solid hsl(38 50% 30%)',
-                textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)',
-              }}
-            >
-              <Upload className="mr-2 w-5 h-5 md:w-6 md:h-6 relative z-10 text-primary/80 group-hover:scale-110 transition-transform" />
-              <span className="relative z-10">Upload from Gallery</span>
             </button>
           </div>
         </div>
@@ -243,14 +230,6 @@ const Landing = () => {
               You're rescuing lost truth and turning it into generational wealth.
             </p>
           </div>
-          
-          <Button
-            size="lg"
-            onClick={() => navigate("/app")}
-            className="mt-16 text-xl md:text-2xl px-16 py-8"
-          >
-            Start Rescuing History – Free
-          </Button>
         </div>
       </section>
 
@@ -378,70 +357,46 @@ const Landing = () => {
             </div>
           </div>
 
-          <p className="text-2xl md:text-3xl font-semibold text-center mb-8 text-foreground">
+          <p className="text-2xl md:text-3xl font-semibold text-center text-foreground">
             The rarer your document, the faster buyers find it and pay you.
           </p>
-
-          <div className="text-center">
-            <Button
-              size="lg"
-              onClick={() => navigate("/app")}
-              className="text-xl md:text-2xl px-12 py-8"
-            >
-              Try the Live Search
-            </Button>
-          </div>
         </div>
       </section>
 
-      {/* Final CTA Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-6xl font-bold font-display mb-8 text-foreground">
-            Ready to preserve history?
-          </h2>
-          <Button
-            size="lg"
-            onClick={() => navigate("/app")}
-            className="text-xl md:text-2xl px-16 py-8"
-          >
-            Open Trove → Start Earning
-          </Button>
-        </div>
-      </section>
-
-      {/* Fixed Bottom Camera Bar (Mobile-First) */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center py-6"
-        style={{ 
-          paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
-          background: 'linear-gradient(to top, rgba(28, 25, 20, 0.95) 0%, rgba(28, 25, 20, 0.8) 70%, transparent 100%)',
-          backdropFilter: 'blur(10px)'
-        }}
-      >
-        <button
-          onClick={handleOpenCamera}
-          className="w-20 h-20 rounded-full relative group transition-transform active:scale-95"
-          style={{
-            background: 'radial-gradient(circle, hsl(38 60% 50%) 0%, hsl(38 60% 35%) 100%)',
-            boxShadow: '0 0 40px rgba(218, 165, 32, 0.7), 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 2px 6px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.3)',
+      {/* Fixed Bottom Camera Bar - Only shown after permission granted */}
+      {cameraPermissionGranted && (
+        <div 
+          className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center py-6"
+          style={{ 
+            paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
+            background: 'linear-gradient(to top, rgba(28, 25, 20, 0.95) 0%, rgba(28, 25, 20, 0.8) 70%, transparent 100%)',
+            backdropFilter: 'blur(10px)'
           }}
-          aria-label="Open Camera"
         >
-          {/* Inner ring */}
-          <div className="absolute inset-2 rounded-full bg-background/90 flex items-center justify-center group-active:scale-90 transition-transform">
-            <Camera className="w-8 h-8" style={{ color: 'hsl(38 60% 45%)' }} />
-          </div>
-          
-          {/* Subtle glow animation */}
-          <div 
-            className="absolute inset-0 rounded-full animate-pulse-brass opacity-60"
+          <button
+            onClick={handleOpenCamera}
+            className="w-20 h-20 rounded-full relative group transition-transform active:scale-95"
             style={{
-              background: 'radial-gradient(circle, transparent 50%, rgba(218, 165, 32, 0.3) 100%)',
+              background: 'radial-gradient(circle, hsl(38 60% 50%) 0%, hsl(38 60% 35%) 100%)',
+              boxShadow: '0 0 40px rgba(218, 165, 32, 0.7), 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 2px 6px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.3)',
             }}
-          />
-        </button>
-      </div>
+            aria-label="Open Camera"
+          >
+            {/* Inner ring */}
+            <div className="absolute inset-2 rounded-full bg-background/90 flex items-center justify-center group-active:scale-90 transition-transform">
+              <Camera className="w-8 h-8" style={{ color: 'hsl(38 60% 45%)' }} />
+            </div>
+            
+            {/* Subtle glow animation */}
+            <div 
+              className="absolute inset-0 rounded-full animate-pulse-brass opacity-60"
+              style={{
+                background: 'radial-gradient(circle, transparent 50%, rgba(218, 165, 32, 0.3) 100%)',
+              }}
+            />
+          </button>
+        </div>
+      )}
 
       {/* Mobile Camera Flow */}
       {showCamera && (
