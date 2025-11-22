@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { InscriptionBottomSheet } from "./InscriptionBottomSheet";
 import { InscriptionLoadingAnimation } from "./InscriptionLoadingAnimation";
 import { InscriptionSuccessAnimation } from "./InscriptionSuccessAnimation";
+import { haptics } from "@/utils/haptics";
 
 interface MobileCameraFlowProps {
   onClose: () => void;
@@ -123,6 +124,9 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
   const capturePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
+    // Haptic feedback on shutter press
+    haptics.medium();
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth;
@@ -225,6 +229,9 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
       setTxid(mockTxid);
       setIsInscribing(false);
       setInscriptionSuccess(true);
+      
+      // Haptic feedback on success
+      haptics.success();
     } catch (error) {
       console.error("Inscription error:", error);
       alert("Failed to inscribe document. Please try again.");

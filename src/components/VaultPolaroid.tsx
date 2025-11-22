@@ -1,4 +1,5 @@
 import { Coins } from "lucide-react";
+import { useDeviceOrientation } from "@/utils/deviceOrientation";
 
 interface Document {
   id: string;
@@ -15,6 +16,8 @@ interface VaultPolaroidProps {
 }
 
 export const VaultPolaroid = ({ document, index, onClick }: VaultPolaroidProps) => {
+  const { orientation } = useDeviceOrientation();
+  
   // Generate consistent random rotation and position for each document
   const rotations = [-4, -2, 0, 2, 4, -3, 1, 3, -1];
   const rotation = rotations[index % rotations.length];
@@ -25,6 +28,10 @@ export const VaultPolaroid = ({ document, index, onClick }: VaultPolaroidProps) 
   const offsetX = (Math.sin(index * 2.5) * 20);
   const offsetY = (Math.cos(index * 1.8) * 20);
 
+  // Calculate parallax effect from device orientation
+  const parallaxX = orientation.gamma ? (orientation.gamma / 90) * 8 : 0;
+  const parallaxY = orientation.beta ? ((orientation.beta - 90) / 90) * 8 : 0;
+
   return (
     <div
       onClick={onClick}
@@ -32,8 +39,9 @@ export const VaultPolaroid = ({ document, index, onClick }: VaultPolaroidProps) 
       style={{
         left: `${10 + col * 30 + offsetX}%`,
         top: `${10 + row * 280 + offsetY}px`,
-        transform: `rotate(${rotation}deg)`,
+        transform: `rotate(${rotation}deg) translate(${parallaxX}px, ${parallaxY}px)`,
         width: '280px',
+        transition: 'transform 0.3s ease-out',
       }}
     >
       {/* Polaroid Frame */}

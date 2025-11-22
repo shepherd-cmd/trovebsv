@@ -5,6 +5,7 @@ import { FileText, Shield, Zap, TrendingUp, Search, Book, Camera } from "lucide-
 import ParticleBackground from "@/components/ParticleBackground";
 import libraryBg from "@/assets/hero-library-bg.jpg";
 import { MobileCameraFlow } from "@/components/MobileCameraFlow";
+import { AmbientSound } from "@/components/AmbientSound";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -373,6 +374,9 @@ const Landing = () => {
 
       {/* Mobile Camera Flow */}
       {showCamera && <MobileCameraFlow onClose={() => setShowCamera(false)} />}
+
+      {/* Ambient Sound Control */}
+      <AmbientSound />
     </div>
   );
 };
