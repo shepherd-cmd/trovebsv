@@ -10,9 +10,10 @@ import { haptics } from "@/utils/haptics";
 
 interface MobileCameraFlowProps {
   onClose: () => void;
+  onError?: () => void;
 }
 
-export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
+export const MobileCameraFlow = ({ onClose, onError }: MobileCameraFlowProps) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -49,6 +50,9 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
       }
     } catch (error) {
       console.error("Camera access error:", error);
+      if (onError) {
+        onError();
+      }
     }
   };
 
