@@ -6,6 +6,7 @@ interface InscriptionSuccessAnimationProps {
   onClose: () => void;
   documentTitle: string;
   txid?: string;
+  treasurySponsored?: boolean;
 }
 
 interface Coin {
@@ -19,7 +20,8 @@ interface Coin {
 export const InscriptionSuccessAnimation = ({ 
   onClose, 
   documentTitle,
-  txid 
+  txid,
+  treasurySponsored = false
 }: InscriptionSuccessAnimationProps) => {
   const [coins, setCoins] = useState<Coin[]>([]);
 
@@ -95,6 +97,54 @@ export const InscriptionSuccessAnimation = ({
           has been inscribed forever on the Bitcoin SV blockchain
         </p>
 
+        {/* Treasury Sponsorship Badge */}
+        {treasurySponsored && (
+          <div 
+            className="relative parchment-card p-6 mb-6 animate-fade-in border-2"
+            style={{ 
+              animationDelay: '0.25s',
+              borderColor: 'hsl(0 70% 45%)',
+              background: 'linear-gradient(135deg, rgba(139, 0, 0, 0.05) 0%, rgba(180, 0, 0, 0.03) 100%)',
+            }}
+          >
+            {/* Wax Seal Stamp */}
+            <div 
+              className="absolute -top-6 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full flex items-center justify-center"
+              style={{
+                background: 'radial-gradient(circle, hsl(0 70% 45%) 0%, hsl(0 60% 35%) 100%)',
+                boxShadow: '0 4px 12px rgba(139, 0, 0, 0.5), inset 0 2px 6px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              <div className="text-center">
+                <div 
+                  className="text-xs font-bold font-display"
+                  style={{ color: 'hsl(0 10% 90%)', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                >
+                  TROVE
+                </div>
+                <div 
+                  className="text-[8px] font-display"
+                  style={{ color: 'hsl(0 10% 80%)' }}
+                >
+                  TREASURY
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center pt-6">
+              <p 
+                className="text-base font-bold font-display mb-2"
+                style={{ color: 'hsl(0 70% 45%)' }}
+              >
+                Treasury Sponsored
+              </p>
+              <p className="text-sm text-muted-foreground font-body">
+                This inscription was gifted by the Lifetime Archivists treasury
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Transaction ID */}
         {txid && (
           <div className="parchment-card p-4 mb-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
@@ -114,7 +164,9 @@ export const InscriptionSuccessAnimation = ({
         <div className="grid grid-cols-2 gap-4 mb-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <div className="leather-card p-4">
             <p className="text-xs text-muted-foreground mb-1">Inscription Cost</p>
-            <p className="text-2xl font-bold font-display text-primary">FREE</p>
+            <p className="text-2xl font-bold font-display text-primary">
+              {treasurySponsored ? 'FREE' : '< 1¢'}
+            </p>
           </div>
           <div className="leather-card p-4">
             <p className="text-xs text-muted-foreground mb-1">Status</p>
