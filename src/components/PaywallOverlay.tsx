@@ -1,10 +1,11 @@
 import { X, Lock, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CoinRainAnimation } from "@/components/CoinRainAnimation";
 import { playCashRegisterSound } from "@/utils/cashRegisterSound";
+import { useHandCash } from "@/contexts/HandCashContext";
 
 interface PaywallOverlayProps {
   document: {
@@ -13,18 +14,51 @@ interface PaywallOverlayProps {
     image_url: string;
     category: string;
     user_id: string;
+    owner_paymail?: string;
   };
   onClose: () => void;
   onUnlocked: () => void;
 }
 
 export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlayProps) => {
+  const { splitPayment, isConnected } = useHandCash();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCoinRain, setShowCoinRain] = useState(false);
-  const unlockPrice = 300; // satoshis (~$0.10-$0.20)
+  const [isLifetimeUser, setIsLifetimeUser] = useState(false);
+  const baseUnlockPrice = 300; // satoshis
+  const unlockPrice = isLifetimeUser ? 150 : baseUnlockPrice; // 50% discount for lifetime users
   const bsvPrice = unlockPrice / 100000000; // Convert sats to BSV
 
+  useEffect(() => {
+    const checkLifetimeStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('lifetime_archivist')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.lifetime_archivist) {
+          setIsLifetimeUser(true);
+        }
+      }
+    };
+    
+    checkLifetimeStatus();
+  }, []);
+
   const handleUnlock = async () => {
+    if (!isConnected) {
+      toast.error("Please connect your HandCash wallet first");
+      return;
+    }
+
+    if (!document.owner_paymail) {
+      toast.error("Document owner paymail not found. Cannot process payment.");
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
@@ -35,7 +69,14 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
         return;
       }
 
-      // Calculate royalty split (80% owner, 20% platform)
+      // Process HandCash payment with 80/20 split
+      await splitPayment(
+        unlockPrice,
+        document.owner_paymail,
+        `Unlock: ${document.title}`
+      );
+
+      // Calculate shares for database record
       const ownerShare = bsvPrice * 0.8;
       const platformShare = bsvPrice * 0.2;
 
@@ -72,7 +113,7 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
         console.error("Error updating earnings:", updateError);
       }
 
-      // Get document owner's username for the toast message
+      // Get document owner's username
       const { data: ownerProfile } = await supabase
         .from('profiles')
         .select('username')
@@ -101,7 +142,7 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
       }, 1000);
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.");
+      toast.error("Dust in the Attic? Try Again");
     } finally {
       setIsProcessing(false);
     }
@@ -219,6 +260,11 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
           <p className="text-xs text-muted-foreground font-body">
             ≈ ${(unlockPrice * 0.0004).toFixed(2)} USD • {bsvPrice.toFixed(8)} BSV
           </p>
+          {isLifetimeUser && (
+            <p className="text-xs font-bold font-display mt-1" style={{ color: 'hsl(42 88% 55%)' }}>
+              ⭐ Lifetime Archivist: 50% Discount Applied
+            </p>
+          )}
           <p className="text-xs text-muted-foreground font-body mt-2">
             80% to creator, 20% to platform treasury
           </p>
