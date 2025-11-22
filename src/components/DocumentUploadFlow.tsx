@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { VintageCamera } from '@/components/VintageCamera';
+import { InscriptionSuccessAnimation } from '@/components/InscriptionSuccessAnimation';
 
 const CATEGORIES = [
   'Maps', 'Diaries', 'Letters', 'Manuscripts', 'Books', 
@@ -150,6 +151,15 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Check if user has free inscriptions
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('free_inscriptions_remaining, lifetime_archivist')
+        .eq('id', user.id)
+        .single();
+
+      const hasFreeSlots = profile && profile.free_inscriptions_remaining > 0;
+
       // Upload all photos
       const uploadedDocPhotos = await Promise.all(
         documentPhotos.map(async (photo, idx) => {
@@ -171,18 +181,51 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
         })
       );
 
-      // Call inscription edge function
-      const { data: inscriptionResult, error: inscribeError } = await supabase.functions.invoke('inscribe-document', {
-        body: {
-          documentPhotos: uploadedDocPhotos,
-          provenancePhotos: uploadedProvenancePhotos,
-          metadata: { title, description, category, pricePerPage },
-          walletType: wallet,
-          walletData: { address: `${wallet}-mock-address` }
-        }
-      });
+      let inscriptionResult;
+      let treasurySponsored = false;
 
-      if (inscribeError) throw inscribeError;
+      // Use sponsored inscription if user has free slots
+      if (hasFreeSlots) {
+        const { data: sponsorData, error: sponsorError } = await supabase.functions.invoke('sponsor-inscription', {
+          body: {
+            documentPhotos: uploadedDocPhotos,
+            provenancePhotos: uploadedProvenancePhotos,
+            metadata: { title, description, category, pricePerPage },
+          }
+        });
+
+        if (sponsorError || !sponsorData?.success) {
+          // If treasury sponsorship fails, fall back to user payment
+          console.warn('Treasury sponsorship failed, falling back to user payment:', sponsorError);
+          
+          if (sponsorData?.treasuryLow) {
+            toast({
+              title: 'Treasury Low',
+              description: 'The treasury cannot sponsor this inscription. Please help grow the vault!',
+              variant: 'destructive',
+            });
+          }
+        } else {
+          inscriptionResult = sponsorData;
+          treasurySponsored = true;
+        }
+      }
+
+      // If not sponsored, use regular inscription
+      if (!treasurySponsored) {
+        const { data, error: inscribeError } = await supabase.functions.invoke('inscribe-document', {
+          body: {
+            documentPhotos: uploadedDocPhotos,
+            provenancePhotos: uploadedProvenancePhotos,
+            metadata: { title, description, category, pricePerPage },
+            walletType: wallet,
+            walletData: { address: `${wallet}-mock-address` }
+          }
+        });
+
+        if (inscribeError) throw inscribeError;
+        inscriptionResult = data;
+      }
 
       // Save to database
       const { error: dbError } = await supabase.from('documents').insert([{
@@ -206,7 +249,7 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
 
       if (dbError) throw dbError;
 
-      setInscriptionData(inscriptionResult);
+      setInscriptionData({ ...inscriptionResult, treasurySponsored });
       setStep('success');
     } catch (error) {
       console.error('Inscription error:', error);
@@ -452,63 +495,12 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
       )}
 
       {step === 'success' && inscriptionData && (
-        <div className="glass-card-strong p-8 relative overflow-hidden">
-          {/* Particle burst effect */}
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(12)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-primary"
-                style={{
-                  animation: `particle-burst 1s ease-out ${i * 0.1}s`,
-                  '--burst-x': `${Math.cos(i * 30 * Math.PI / 180) * 200}px`,
-                  '--burst-y': `${Math.sin(i * 30 * Math.PI / 180) * 200}px`,
-                } as any}
-              />
-            ))}
-          </div>
-          
-          <div className="text-center mb-8 relative z-10">
-            <div className="inline-block p-6 glass-card rounded-3xl mb-6 animate-diamond-spin">
-              <CheckCircle 
-                className="w-20 h-20 brass-glow" 
-                style={{ color: 'hsl(120 60% 50%)', stroke: 'hsl(120 60% 50%)' }}
-              />
-            </div>
-            <h2 className="text-4xl font-bold mb-3 brass-glow font-display text-primary">Successfully Inscribed!</h2>
-            <p className="text-muted-foreground text-lg">Your document is now on the BSV blockchain</p>
-          </div>
-
-          <div className="space-y-6 mb-8 relative z-10">
-            <div className="glass-card p-6 rounded-2xl">
-              <div className="text-sm text-muted-foreground mb-2">Transaction ID</div>
-              <div className="font-mono text-xs break-all neon-glow">{inscriptionData.txid}</div>
-            </div>
-
-            <div className="glass-card p-6 rounded-2xl">
-              <div className="text-sm text-muted-foreground mb-2">Public Payable Link</div>
-              <a
-                href={inscriptionData.payableLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="neon-glow text-sm break-all hover:underline"
-              >
-                {inscriptionData.payableLink}
-              </a>
-            </div>
-
-            <div className="glass-card-strong p-8 rounded-2xl text-center animate-pulse-glow">
-              <div className="text-sm text-muted-foreground mb-2">Total Earnings</div>
-              <div className="text-5xl font-bold neon-glow">0 sats</div>
-              <div className="text-xs text-muted-foreground mt-2">Live earnings counter</div>
-            </div>
-          </div>
-
-          <Button onClick={onComplete} className="w-full">
-            Upload Another Document
-          </Button>
-        </div>
-
+        <InscriptionSuccessAnimation 
+          onClose={onComplete}
+          documentTitle={title}
+          txid={inscriptionData.txid}
+          treasurySponsored={inscriptionData.treasurySponsored || false}
+        />
       )}
     </div>
   );
