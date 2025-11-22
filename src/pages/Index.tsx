@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import DocumentUploadFlow from "@/components/DocumentUploadFlow";
 import { DocumentCard } from "@/components/DocumentCard";
+import { PaywallOverlay } from "@/components/PaywallOverlay";
 import { Button } from "@/components/ui/button";
 import { Book, LogOut, Upload, Trophy, Coins, FileText, Vault } from "lucide-react";
 
@@ -11,6 +12,8 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const [showUpload, setShowUpload] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,6 +58,37 @@ const Index = () => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
+  };
+
+  const handleDocumentClick = async (doc: any) => {
+    // Check if user already unlocked this document
+    const { data: unlock } = await supabase
+      .from('document_unlocks')
+      .select('*')
+      .eq('document_id', doc.id)
+      .eq('user_id', user!.id)
+      .maybeSingle();
+
+    if (unlock) {
+      // Already unlocked, show full view
+      // For now, just show a message
+      console.log("Document already unlocked!");
+    } else {
+      // Show paywall
+      setSelectedDocument(doc);
+      setShowPaywall(true);
+    }
+  };
+
+  const handlePaywallClose = () => {
+    setShowPaywall(false);
+    setSelectedDocument(null);
+  };
+
+  const handleUnlocked = () => {
+    setShowPaywall(false);
+    setSelectedDocument(null);
+    loadDocuments(); // Refresh to show updated earnings
   };
 
   if (!user) return null;
@@ -188,6 +222,7 @@ const Index = () => {
               {documents.map((doc) => (
                 <DocumentCard
                   key={doc.id}
+                  id={doc.id}
                   title={doc.title}
                   category={doc.category}
                   imageUrl={doc.image_url}
@@ -195,13 +230,24 @@ const Index = () => {
                   usefulnessScore={doc.usefulness_score}
                   pricePerPage={doc.price_per_page}
                   totalPages={doc.total_pages}
+                  totalEarnings={doc.total_earnings}
                   createdAt={doc.created_at}
+                  onClick={() => handleDocumentClick(doc)}
                 />
               ))}
             </div>
           )}
         </div>
       </main>
+
+      {/* Paywall Overlay */}
+      {showPaywall && selectedDocument && (
+        <PaywallOverlay
+          document={selectedDocument}
+          onClose={handlePaywallClose}
+          onUnlocked={handleUnlocked}
+        />
+      )}
     </div>
   );
 };

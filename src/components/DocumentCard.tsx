@@ -3,6 +3,7 @@ import { TrendingUp, Coins } from "lucide-react";
 import { useState } from "react";
 
 interface DocumentCardProps {
+  id?: string;
   title: string;
   category: string;
   imageUrl: string;
@@ -10,10 +11,13 @@ interface DocumentCardProps {
   usefulnessScore: number;
   pricePerPage: number;
   totalPages: number;
+  totalEarnings?: number;
   createdAt: string;
+  onClick?: () => void;
 }
 
 export function DocumentCard({
+  id,
   title,
   category,
   imageUrl,
@@ -21,7 +25,9 @@ export function DocumentCard({
   usefulnessScore,
   pricePerPage,
   totalPages,
+  totalEarnings,
   createdAt,
+  onClick,
 }: DocumentCardProps) {
   // Generate a consistent random rotation for each card based on title
   const getRotation = (str: string) => {
@@ -44,11 +50,14 @@ export function DocumentCard({
   };
 
   const rarity = getRarityLabel(rarityScore);
-  const totalEarnings = (pricePerPage * totalPages).toFixed(6);
+  const displayEarnings = totalEarnings !== undefined 
+    ? totalEarnings.toFixed(6) 
+    : (pricePerPage * totalPages).toFixed(6);
 
   return (
     <div 
       className="group cursor-pointer perspective-1000"
+      onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -149,14 +158,17 @@ export function DocumentCard({
             transition: 'all 0.4s ease',
           }}
         >
-          {/* Royalty Counter in Handwriting */}
+          {/* Earnings Counter */}
           <div className="flex items-center justify-center gap-2 mb-1">
             <Coins 
               className="w-4 h-4" 
-              style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+              style={{ color: 'hsl(42 88% 55%)', stroke: 'hsl(42 88% 55%)' }}
             />
-            <span className="font-handwriting text-lg text-primary brass-glow">
-              {totalEarnings} BSV
+            <span className="font-handwriting text-sm text-muted-foreground">
+              Earned so far:
+            </span>
+            <span className="font-display text-lg font-bold brass-glow" style={{ color: 'hsl(42 88% 55%)' }}>
+              {displayEarnings} BSV
             </span>
           </div>
           

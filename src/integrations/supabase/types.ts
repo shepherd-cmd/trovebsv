@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      document_unlocks: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          document_id: string
+          id: string
+          owner_share: number
+          platform_share: number
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          document_id: string
+          id?: string
+          owner_share: number
+          platform_share: number
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          document_id?: string
+          id?: string
+          owner_share?: number
+          platform_share?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_unlocks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           ai_analysis: Json | null
