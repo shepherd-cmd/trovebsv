@@ -6,7 +6,7 @@ import DocumentUploadFlow from "@/components/DocumentUploadFlow";
 import { DocumentCard } from "@/components/DocumentCard";
 import { PaywallOverlay } from "@/components/PaywallOverlay";
 import { Button } from "@/components/ui/button";
-import { Book, LogOut, Upload, Trophy, Coins, FileText, Vault } from "lucide-react";
+import { Book, LogOut, Upload, Trophy, Coins, FileText, Vault, TrendingUp } from "lucide-react";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -112,6 +112,14 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/treasury")}
+              >
+                <TrendingUp className="mr-2 h-4 w-4" style={{ color: 'hsl(42 88% 55%)' }} />
+                Treasury
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
