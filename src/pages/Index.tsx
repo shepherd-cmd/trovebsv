@@ -115,6 +115,14 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => navigate("/the-vault")}
+              >
+                <Book className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
+                The Vault
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => navigate("/vault")}
               >
                 <Vault className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
