@@ -1,25 +1,18 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { HandCashConnect } from '@handcash/handcash-connect';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HandCashContextType {
-  handCashAccount: any | null;
   isConnected: boolean;
   userPaymail: string | null;
   connect: () => Promise<void>;
   disconnect: () => void;
-  createPayment: (amount: number, destination: string, description: string) => Promise<string>;
   splitPayment: (amount: number, ownerPaymail: string, description: string) => Promise<void>;
   getTreasuryBalance: () => Promise<number>;
 }
 
 const HandCashContext = createContext<HandCashContextType | undefined>(undefined);
 
-const TREASURY_PAYMAIL = '$trove-treasury@handcash.io';
-// TODO: Replace with actual HandCash App Secret from developers.handcash.io
-const HANDCASH_APP_ID = 'your_app_id_here';
-
 export function HandCashProvider({ children }: { children: ReactNode }) {
-  const [handCashAccount, setHandCashAccount] = useState<any | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [userPaymail, setUserPaymail] = useState<string | null>(null);
 
@@ -29,39 +22,19 @@ export function HandCashProvider({ children }: { children: ReactNode }) {
     if (storedPaymail) {
       setUserPaymail(storedPaymail);
       setIsConnected(true);
-      initializeHandCash();
     }
   }, []);
 
-  const initializeHandCash = () => {
-    try {
-      const handCashConnect = new HandCashConnect({
-        appId: HANDCASH_APP_ID,
-        appSecret: import.meta.env.VITE_HANDCASH_APP_SECRET || '',
-      });
-      
-      const authToken = localStorage.getItem('handcash_token');
-      if (authToken) {
-        const account = handCashConnect.getAccountFromAuthToken(authToken);
-        setHandCashAccount(account);
-      }
-    } catch (error) {
-      console.error('Failed to initialize HandCash:', error);
-    }
-  };
-
   const connect = async () => {
     try {
-      const handCashConnect = new HandCashConnect({
-        appId: HANDCASH_APP_ID,
-        appSecret: import.meta.env.VITE_HANDCASH_APP_SECRET || '',
-      });
-
-      const redirectUrl = `${window.location.origin}/auth/handcash`;
-      const authUrl = handCashConnect.getRedirectionUrl();
-      
-      // Open HandCash auth in new window
-      window.location.href = authUrl;
+      // TODO: Implement HandCash OAuth flow
+      // For now, prompt for paymail
+      const paymail = prompt('Enter your HandCash paymail:');
+      if (paymail) {
+        localStorage.setItem('handcash_paymail', paymail);
+        setUserPaymail(paymail);
+        setIsConnected(true);
+      }
     } catch (error) {
       console.error('Failed to connect to HandCash:', error);
       throw error;
@@ -69,39 +42,9 @@ export function HandCashProvider({ children }: { children: ReactNode }) {
   };
 
   const disconnect = () => {
-    localStorage.removeItem('handcash_token');
     localStorage.removeItem('handcash_paymail');
-    setHandCashAccount(null);
     setIsConnected(false);
     setUserPaymail(null);
-  };
-
-  const createPayment = async (
-    amount: number,
-    destination: string,
-    description: string
-  ): Promise<string> => {
-    if (!handCashAccount) {
-      throw new Error('HandCash not connected');
-    }
-
-    try {
-      const payment = await handCashAccount.wallet.pay({
-        payments: [
-          {
-            destination,
-            currencyCode: 'SAT',
-            sendAmount: amount,
-          },
-        ],
-        description,
-      });
-
-      return payment.transactionId;
-    } catch (error) {
-      console.error('Payment failed:', error);
-      throw error;
-    }
   };
 
   const splitPayment = async (
@@ -109,29 +52,23 @@ export function HandCashProvider({ children }: { children: ReactNode }) {
     ownerPaymail: string,
     description: string
   ): Promise<void> => {
-    if (!handCashAccount) {
+    if (!isConnected || !userPaymail) {
       throw new Error('HandCash not connected');
     }
 
-    const ownerShare = Math.floor(amount * 0.8); // 80% to owner
-    const treasuryShare = amount - ownerShare; // 20% to treasury
-
     try {
-      await handCashAccount.wallet.pay({
-        payments: [
-          {
-            destination: ownerPaymail,
-            currencyCode: 'SAT',
-            sendAmount: ownerShare,
-          },
-          {
-            destination: TREASURY_PAYMAIL,
-            currencyCode: 'SAT',
-            sendAmount: treasuryShare,
-          },
-        ],
-        description,
+      // Call edge function to handle payment via HandCash API
+      const { data, error } = await supabase.functions.invoke('process-payment', {
+        body: {
+          amount,
+          ownerPaymail,
+          description,
+          payerPaymail: userPaymail,
+        },
       });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Payment failed');
     } catch (error) {
       console.error('Split payment failed:', error);
       throw error;
@@ -139,18 +76,21 @@ export function HandCashProvider({ children }: { children: ReactNode }) {
   };
 
   const getTreasuryBalance = async (): Promise<number> => {
-    // This would require a separate HandCash account for the treasury
-    // For now, return 0 as placeholder
-    return 0;
+    try {
+      const { data, error } = await supabase.functions.invoke('get-treasury-balance');
+      if (error) throw error;
+      return data?.balance || 0;
+    } catch (error) {
+      console.error('Failed to get treasury balance:', error);
+      return 0;
+    }
   };
 
   const value = {
-    handCashAccount,
     isConnected,
     userPaymail,
     connect,
     disconnect,
-    createPayment,
     splitPayment,
     getTreasuryBalance,
   };
