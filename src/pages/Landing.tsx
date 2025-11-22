@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { FileText, Shield, Zap, TrendingUp, Search, Book } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
+import libraryBg from "@/assets/hero-library-bg.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -34,52 +35,74 @@ const Landing = () => {
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-0">
-        {/* Vintage Background with Wood Texture */}
+        {/* Moody Antique Library Background */}
         <div className="absolute inset-0 z-0">
-          {/* Faint god rays */}
-          <div className="absolute inset-0 opacity-20">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-px bg-gradient-to-b from-transparent via-primary/30 to-transparent"
-                style={{
-                  height: '100%',
-                  left: `${20 + i * 10}%`,
-                  transform: `rotate(${-10 + i * 3}deg)`,
-                  transformOrigin: 'top',
-                }}
-              />
-            ))}
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${libraryBg})`,
+            }}
+          />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/80" />
+          {/* Extra vignette effect */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(28,25,20,0.8)_100%)]" />
         </div>
 
-        {/* Pulsing Amber Glow */}
+        {/* Ambient Golden Glow */}
         <div className="absolute inset-0 flex items-center justify-center z-0">
-          <div className="w-64 h-64 md:w-96 md:h-96 rounded-full bg-primary/10 animate-pulse-brass blur-3xl" />
+          <div className="w-[600px] h-[600px] rounded-full bg-primary/8 animate-pulse-brass blur-[120px]" />
         </div>
 
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-6xl mx-auto py-12 md:py-0">
-          <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-[8rem] xl:text-[10rem] font-bold font-display mb-6 md:mb-8 leading-[1.1] bg-gradient-to-r from-foreground via-primary to-primary-light bg-clip-text text-transparent animate-fade-in drop-shadow-[0_0_30px_rgba(218,165,32,0.5)]">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold font-display mb-6 md:mb-8 leading-[1.1] text-primary animate-fade-in" 
+              style={{ 
+                textShadow: '0 4px 20px rgba(218, 165, 32, 0.6), 0 2px 8px rgba(184, 134, 11, 0.4), 0 0 40px rgba(218, 165, 32, 0.3)',
+                animationDelay: '0s'
+              }}>
             Turn your collection into perpetual Bitcoin royalties
           </h1>
-          <p className="text-base sm:text-lg md:text-2xl lg:text-3xl xl:text-4xl mb-8 md:mb-12 text-foreground/90 font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed px-2" style={{ animationDelay: '0.2s' }}>
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 md:mb-12 text-foreground/95 font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed px-2 drop-shadow-lg" style={{ animationDelay: '0.2s' }}>
             Scan anything rare hiding in your house<br className="hidden sm:block" />
-            <span className="text-accent block mt-2 sm:inline sm:mt-0">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
+            <span className="text-accent/90 block mt-2 sm:inline sm:mt-0">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
             <br /><br className="hidden sm:block" />
             One tap inscribes it forever on BSV<br className="hidden sm:block" />
             <span className="block sm:inline mt-2 sm:mt-0">You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.</span>
           </p>
-          <Button
-            size="lg"
+          
+          {/* Leather Book / Brass Plate CTA Button */}
+          <button
             onClick={() => navigate("/app")}
-            className="text-lg md:text-xl lg:text-2xl px-8 md:px-12 py-6 md:py-8 animate-fade-in"
-            style={{ animationDelay: '0.4s' }}
+            className="group relative inline-flex items-center justify-center px-12 md:px-16 py-6 md:py-8 text-xl md:text-2xl lg:text-3xl font-bold font-display text-foreground overflow-hidden rounded-lg animate-fade-in hover:scale-[1.02] transition-all duration-300"
+            style={{ 
+              animationDelay: '0.4s',
+              background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 215, 100, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(218, 165, 32, 0.3)',
+              border: '3px solid hsl(38 60% 35%)',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(218, 165, 32, 0.4)',
+            }}
           >
-            <Book className="mr-2 w-6 h-6" />
-            Start Scanning – Free
-          </Button>
+            {/* Leather texture overlay */}
+            <div className="absolute inset-0 opacity-30 pointer-events-none" 
+                 style={{
+                   backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px),
+                                    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px)`
+                 }} 
+            />
+            
+            {/* Brass corner decorations */}
+            <div className="absolute top-1 left-1 w-6 h-6 border-t-2 border-l-2 border-primary/60" />
+            <div className="absolute top-1 right-1 w-6 h-6 border-t-2 border-r-2 border-primary/60" />
+            <div className="absolute bottom-1 left-1 w-6 h-6 border-b-2 border-l-2 border-primary/60" />
+            <div className="absolute bottom-1 right-1 w-6 h-6 border-b-2 border-r-2 border-primary/60" />
+            
+            {/* Shimmer effect on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-shimmer" />
+            
+            <Book className="mr-3 w-7 h-7 md:w-8 md:h-8 relative z-10 text-primary group-hover:scale-110 transition-transform" />
+            <span className="relative z-10 brass-glow">Begin Your Discovery – Free</span>
+          </button>
         </div>
       </section>
 
