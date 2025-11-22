@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { CoinRainAnimation } from "@/components/CoinRainAnimation";
+import { playCashRegisterSound } from "@/utils/cashRegisterSound";
 
 interface PaywallOverlayProps {
   document: {
@@ -18,6 +20,7 @@ interface PaywallOverlayProps {
 
 export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlayProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showCoinRain, setShowCoinRain] = useState(false);
   const unlockPrice = 300; // satoshis (~$0.10-$0.20)
   const bsvPrice = unlockPrice / 100000000; // Convert sats to BSV
 
@@ -69,8 +72,33 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
         console.error("Error updating earnings:", updateError);
       }
 
-      toast.success("Document unlocked! Full resolution now available.");
-      onUnlocked();
+      // Get document owner's username for the toast message
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', document.user_id)
+        .single();
+
+      const ownerUsername = ownerProfile?.username || 'unknown_archivist';
+
+      // Play cash register sound
+      playCashRegisterSound();
+      
+      // Show coin rain animation
+      setShowCoinRain(true);
+
+      // Show success message with owner credit
+      toast.success(
+        `You just paid ${bsvPrice.toFixed(8)} BSV to @${ownerUsername} – thank you for preserving history!`,
+        {
+          duration: 5000,
+        }
+      );
+
+      // Wait a moment for animations, then unlock
+      setTimeout(() => {
+        onUnlocked();
+      }, 1000);
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Payment failed. Please try again.");
@@ -80,12 +108,16 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300"
-      style={{
-        background: 'rgba(20, 15, 10, 0.85)',
-      }}
-    >
+    <>
+      {/* Coin Rain Animation */}
+      {showCoinRain && <CoinRainAnimation onComplete={() => setShowCoinRain(false)} />}
+      
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300"
+        style={{
+          background: 'rgba(20, 15, 10, 0.85)',
+        }}
+      >
       {/* Aged Parchment Modal */}
       <div 
         className="relative max-w-lg w-full parchment-card p-8 shadow-glow-strong animate-in zoom-in-95 duration-300"
@@ -220,5 +252,6 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
         </p>
       </div>
     </div>
+    </>
   );
 };

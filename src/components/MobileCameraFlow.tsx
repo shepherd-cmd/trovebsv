@@ -255,6 +255,7 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
           onClose={handleCloseSuccess}
           documentTitle={documentTitle}
           txid={txid}
+          treasurySponsored={true}
         />
       )}
       
