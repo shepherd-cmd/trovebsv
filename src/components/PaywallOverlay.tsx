@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CoinRainAnimation } from "@/components/CoinRainAnimation";
 import { playCashRegisterSound } from "@/utils/cashRegisterSound";
 import { useHandCash } from "@/contexts/HandCashContext";
+import { PaymentDeepLink } from "@/components/PaymentDeepLink";
 
 interface PaywallOverlayProps {
   document: {
@@ -271,27 +272,35 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
         </div>
 
         {/* Unlock Button */}
-        <Button
-          onClick={handleUnlock}
-          disabled={isProcessing}
-          className="w-full py-6 text-lg font-display font-bold"
-          style={{
-            background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
-            boxShadow: '0 4px 12px rgba(139, 90, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
-          }}
-        >
-          {isProcessing ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-background mr-2" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <Lock className="mr-2 h-5 w-5" />
-              Unlock Forever
-            </>
-          )}
-        </Button>
+        {isConnected ? (
+          <PaymentDeepLink
+            amount={unlockPrice}
+            recipient={document.owner_paymail || ''}
+            description={`Unlock treasure: ${document.title}`}
+            onSuccess={handleUnlock}
+            onFallback={() => {
+              toast.error('HandCash Not Installed', {
+                description: 'Opening web version...',
+              });
+            }}
+          />
+        ) : (
+          <Button
+            onClick={() => {
+              toast.error("Connect HandCash First", {
+                description: "Please connect your HandCash wallet to continue",
+              });
+            }}
+            className="w-full py-6 text-lg font-display font-bold"
+            style={{
+              background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+              boxShadow: '0 4px 12px rgba(139, 90, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            <Coins className="mr-2 h-5 w-5" />
+            Connect HandCash to Unlock
+          </Button>
+        )}
 
         <p className="text-center text-xs text-muted-foreground font-body mt-4">
           One-time payment • Permanent access • Stored in your vault

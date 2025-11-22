@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface HandCashContextType {
   isConnected: boolean;
@@ -8,6 +9,8 @@ interface HandCashContextType {
   disconnect: () => void;
   splitPayment: (amount: number, ownerPaymail: string, description: string) => Promise<void>;
   getTreasuryBalance: () => Promise<number>;
+  showConnectModal: boolean;
+  setShowConnectModal: (show: boolean) => void;
 }
 
 const HandCashContext = createContext<HandCashContextType | undefined>(undefined);
@@ -15,36 +18,67 @@ const HandCashContext = createContext<HandCashContextType | undefined>(undefined
 export function HandCashProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [userPaymail, setUserPaymail] = useState<string | null>(null);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is already connected
     const storedPaymail = localStorage.getItem('handcash_paymail');
-    if (storedPaymail) {
+    const storedAuthToken = localStorage.getItem('handcash_auth_token');
+    
+    if (storedPaymail && storedAuthToken) {
       setUserPaymail(storedPaymail);
       setIsConnected(true);
     }
-  }, []);
 
-  const connect = async () => {
-    try {
-      // TODO: Implement HandCash OAuth flow
-      // For now, prompt for paymail
-      const paymail = prompt('Enter your HandCash paymail:');
-      if (paymail) {
+    // Check for OAuth callback
+    const handleOAuthCallback = () => {
+      const params = new URLSearchParams(window.location.search);
+      const authToken = params.get('authToken');
+      const paymail = params.get('paymail');
+      
+      if (authToken && paymail) {
+        localStorage.setItem('handcash_auth_token', authToken);
         localStorage.setItem('handcash_paymail', paymail);
         setUserPaymail(paymail);
         setIsConnected(true);
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        toast({
+          title: 'HandCash Connected',
+          description: `Connected as ${paymail}`,
+        });
       }
+    };
+
+    handleOAuthCallback();
+  }, [toast]);
+
+  const connect = async () => {
+    try {
+      setShowConnectModal(true);
     } catch (error) {
       console.error('Failed to connect to HandCash:', error);
+      toast({
+        title: 'Connection Failed',
+        description: 'Unable to connect to HandCash',
+        variant: 'destructive',
+      });
       throw error;
     }
   };
 
   const disconnect = () => {
     localStorage.removeItem('handcash_paymail');
+    localStorage.removeItem('handcash_auth_token');
     setIsConnected(false);
     setUserPaymail(null);
+    toast({
+      title: 'Disconnected',
+      description: 'HandCash has been disconnected',
+    });
   };
 
   const splitPayment = async (
@@ -93,6 +127,8 @@ export function HandCashProvider({ children }: { children: ReactNode }) {
     disconnect,
     splitPayment,
     getTreasuryBalance,
+    showConnectModal,
+    setShowConnectModal,
   };
 
   return (

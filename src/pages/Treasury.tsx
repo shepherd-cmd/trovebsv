@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { Book, LogOut, Home, DoorOpen, TrendingUp, Users, Coins, Gift } from "lucide-react";
+import { Book, LogOut, Home, DoorOpen, TrendingUp, Users, Coins, Gift, RefreshCw } from "lucide-react";
 
 interface TreasuryStats {
   totalBsvInTreasury: number;
@@ -30,6 +30,8 @@ const Treasury = () => {
   });
   const [recentTransactions, setRecentTransactions] = useState<TreasuryTransaction[]>([]);
   const [showDonationPrompt, setShowDonationPrompt] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,57 +57,71 @@ const Treasury = () => {
   useEffect(() => {
     if (user) {
       loadTreasuryStats();
+
+      // Poll treasury balance every 30 seconds
+      const interval = setInterval(() => {
+        loadTreasuryStats();
+      }, 30000);
+
+      return () => clearInterval(interval);
     }
   }, [user]);
 
   const loadTreasuryStats = async () => {
-    // Get treasury balance from HandCash
-    const { data: balanceData } = await supabase.functions.invoke('get-treasury-balance');
-    const treasuryBalanceBSV = balanceData?.balanceBSV || 0;
+    setIsRefreshing(true);
+    try {
+      // Get treasury balance from HandCash
+      const { data: balanceData } = await supabase.functions.invoke('get-treasury-balance');
+      const treasuryBalanceBSV = balanceData?.balanceBSV || 0;
 
-    // Get all document unlocks to calculate royalties
-    const { data: unlocks } = await supabase
-      .from('document_unlocks')
-      .select('owner_share');
+      // Get all document unlocks to calculate royalties
+      const { data: unlocks } = await supabase
+        .from('document_unlocks')
+        .select('owner_share');
 
-    // Get total number of documents
-    const { count: documentsCount } = await supabase
-      .from('documents')
-      .select('*', { count: 'exact', head: true });
+      // Get total number of documents
+      const { count: documentsCount } = await supabase
+        .from('documents')
+        .select('*', { count: 'exact', head: true });
 
-    // Calculate total free inscriptions remaining across all Lifetime Archivists
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('free_inscriptions_remaining')
-      .eq('lifetime_archivist', true);
-    
-    const totalFreeInscriptionsLeft = profiles?.reduce((sum, p) => sum + (p.free_inscriptions_remaining || 0), 0) || 0;
+      // Calculate total free inscriptions remaining across all Lifetime Archivists
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('free_inscriptions_remaining')
+        .eq('lifetime_archivist', true);
+      
+      const totalFreeInscriptionsLeft = profiles?.reduce((sum, p) => sum + (p.free_inscriptions_remaining || 0), 0) || 0;
 
-    // Get recent treasury transactions
-    const { data: transactions } = await supabase
-      .from('treasury_transactions')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10);
+      // Get recent treasury transactions
+      const { data: transactions } = await supabase
+        .from('treasury_transactions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    if (transactions) {
-      setRecentTransactions(transactions);
-    }
+      if (transactions) {
+        setRecentTransactions(transactions);
+      }
 
-    // Show donation prompt if treasury is low
-    if (treasuryBalanceBSV < 100) {
-      setShowDonationPrompt(true);
-    }
+      // Show donation prompt if treasury is low
+      if (treasuryBalanceBSV < 100) {
+        setShowDonationPrompt(true);
+      }
 
-    if (unlocks) {
-      const royaltiesTotal = unlocks.reduce((sum, unlock) => sum + Number(unlock.owner_share), 0);
+      if (unlocks) {
+        const royaltiesTotal = unlocks.reduce((sum, unlock) => sum + Number(unlock.owner_share), 0);
 
-      setStats({
-        totalBsvInTreasury: treasuryBalanceBSV,
-        totalTreasuresPreserved: documentsCount || 0,
-        totalRoyaltiesPaid: royaltiesTotal,
-        sponsoredInscriptionsLeft: totalFreeInscriptionsLeft,
-      });
+        setStats({
+          totalBsvInTreasury: treasuryBalanceBSV,
+          totalTreasuresPreserved: documentsCount || 0,
+          totalRoyaltiesPaid: royaltiesTotal,
+          sponsoredInscriptionsLeft: totalFreeInscriptionsLeft,
+        });
+      }
+
+      setLastUpdated(new Date());
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -213,10 +229,30 @@ const Treasury = () => {
           <h2 className="text-5xl font-bold font-display mb-4 brass-glow" style={{ color: 'hsl(38 60% 55%)' }}>
             Platform Treasury
           </h2>
-          <p className="text-xl text-muted-foreground font-body max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground font-body max-w-2xl mx-auto mb-6">
             Every treasure unlocked contributes to preserving history forever. 
             Watch as the vault grows with each discovery.
           </p>
+
+          {/* Live Update Indicator */}
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              onClick={loadTreasuryStats}
+              disabled={isRefreshing}
+              size="sm"
+              variant="ghost"
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} style={{ color: 'hsl(42 88% 55%)' }} />
+              <span className="text-sm text-muted-foreground">
+                {isRefreshing ? 'Updating...' : `Updated ${Math.floor((Date.now() - lastUpdated.getTime()) / 1000)}s ago`}
+              </span>
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs text-muted-foreground">Live (polls every 30s)</span>
+            </div>
+          </div>
         </div>
 
         {/* Stats Gauges Grid */}
