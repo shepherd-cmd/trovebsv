@@ -11,6 +11,7 @@ const Landing = () => {
   const navigate = useNavigate();
   const [earnings, setEarnings] = useState(0);
   const [showCamera, setShowCamera] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -18,6 +19,17 @@ const Landing = () => {
     }, 100);
     return () => clearInterval(interval);
   }, []);
+
+  const handleOpenCamera = () => {
+    console.log("Button tapped – launching camera");
+    setShowCamera(true);
+  };
+
+  const handleCameraError = () => {
+    console.error("Camera permission denied or failed");
+    setShowCamera(false);
+    setShowPermissionModal(true);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
@@ -76,7 +88,7 @@ const Landing = () => {
           
           {/* Leather Book / Brass Plate CTA Button */}
           <button
-            onClick={() => navigate("/app")}
+            onClick={handleOpenCamera}
             className="group relative inline-flex items-center justify-center px-12 md:px-16 py-6 md:py-8 text-xl md:text-2xl lg:text-3xl font-bold font-display text-foreground overflow-hidden rounded-lg animate-fade-in hover:scale-[1.02] transition-all duration-300"
             style={{ 
               animationDelay: '0.4s',
@@ -349,7 +361,7 @@ const Landing = () => {
         }}
       >
         <button
-          onClick={() => setShowCamera(true)}
+          onClick={handleOpenCamera}
           className="w-20 h-20 rounded-full relative group transition-transform active:scale-95"
           style={{
             background: 'radial-gradient(circle, hsl(38 60% 50%) 0%, hsl(38 60% 35%) 100%)',
@@ -373,7 +385,53 @@ const Landing = () => {
       </div>
 
       {/* Mobile Camera Flow */}
-      {showCamera && <MobileCameraFlow onClose={() => setShowCamera(false)} />}
+      {showCamera && (
+        <MobileCameraFlow 
+          onClose={() => setShowCamera(false)} 
+          onError={handleCameraError}
+        />
+      )}
+
+      {/* Camera Permission Modal */}
+      {showPermissionModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/90 backdrop-blur-md">
+          <div 
+            className="parchment-card p-8 max-w-md w-full text-center shadow-glow animate-scale-in"
+            style={{
+              background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
+              border: '3px solid hsl(38 60% 35%)',
+            }}
+          >
+            <div className="text-6xl mb-4">📸</div>
+            <h3 className="text-2xl font-bold font-display mb-4 text-primary brass-glow">
+              Camera Access Needed
+            </h3>
+            <p className="text-lg text-muted-foreground mb-6">
+              Allow camera access to scan your treasures and preserve history forever.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => {
+                  setShowPermissionModal(false);
+                  handleOpenCamera();
+                }}
+                className="w-full text-lg py-6"
+                size="lg"
+              >
+                Try Again
+              </Button>
+              <Button
+                onClick={() => setShowPermissionModal(false)}
+                variant="outline"
+                className="w-full text-lg py-6"
+                size="lg"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ambient Sound Control */}
       <AmbientSound />
