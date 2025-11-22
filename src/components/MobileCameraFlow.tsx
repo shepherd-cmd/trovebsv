@@ -11,9 +11,13 @@ interface MobileCameraFlowProps {
 export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [filteredImage, setFilteredImage] = useState<string | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const filterCanvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,7 +44,76 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
     }
   };
 
-  const capturePhoto = () => {
+  const applyVintageFilter = (sourceImage: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = filterCanvasRef.current;
+        if (!canvas) return;
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        // Draw original image
+        ctx.drawImage(img, 0, 0);
+
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Apply sepia tone
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+
+          // Sepia formula
+          data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189); // Red
+          data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168); // Green
+          data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131); // Blue
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        // Add film grain
+        ctx.globalAlpha = 0.05;
+        for (let i = 0; i < canvas.width * canvas.height / 50; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const size = Math.random() * 2;
+          const brightness = Math.random() * 255;
+          ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
+          ctx.fillRect(x, y, size, size);
+        }
+        ctx.globalAlpha = 1.0;
+
+        // Add vignette
+        const gradient = ctx.createRadialGradient(
+          canvas.width / 2, canvas.height / 2, 0,
+          canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) * 0.7
+        );
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(0.6, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Reduce contrast slightly for aged look
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = 'rgba(255, 250, 240, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1.0;
+
+        const filtered = canvas.toDataURL("image/jpeg", 0.9);
+        resolve(filtered);
+      };
+      img.src = sourceImage;
+    });
+  };
+
+  const capturePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
@@ -52,7 +125,14 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
     if (ctx) {
       ctx.drawImage(video, 0, 0);
       const imageData = canvas.toDataURL("image/jpeg", 0.9);
-      setCapturedImage(imageData);
+      
+      // Store original
+      setOriginalImage(imageData);
+      
+      // Apply vintage filter
+      const filtered = await applyVintageFilter(imageData);
+      setFilteredImage(filtered);
+      setCapturedImage(filtered);
       
       // Stop camera stream
       if (stream) {
@@ -63,7 +143,19 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
 
   const retakePhoto = () => {
     setCapturedImage(null);
+    setOriginalImage(null);
+    setFilteredImage(null);
+    setShowOriginal(false);
     startCamera();
+  };
+
+  const toggleFilter = () => {
+    if (showOriginal && filteredImage) {
+      setCapturedImage(filteredImage);
+    } else if (!showOriginal && originalImage) {
+      setCapturedImage(originalImage);
+    }
+    setShowOriginal(!showOriginal);
   };
 
   const inscribeDocument = async () => {
@@ -206,6 +298,27 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
             className="absolute inset-0 w-full h-full object-contain"
           />
           
+          {/* Filter Toggle */}
+          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-10"
+               style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+            <button
+              onClick={toggleFilter}
+              className="px-6 py-3 rounded-full font-display font-semibold text-sm transition-all backdrop-blur-sm"
+              style={{
+                background: showOriginal 
+                  ? 'rgba(60, 50, 40, 0.8)' 
+                  : 'linear-gradient(145deg, rgba(139, 90, 0, 0.8), rgba(105, 70, 0, 0.8))',
+                boxShadow: showOriginal 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+                  : '0 2px 8px rgba(218, 165, 32, 0.4)',
+                border: '1px solid rgba(218, 165, 32, 0.3)',
+                color: showOriginal ? 'hsl(38 60% 60%)' : 'hsl(30 25% 10%)',
+              }}
+            >
+              {showOriginal ? 'Original' : 'Antique'} ✓
+            </button>
+          </div>
+          
           {/* Action Buttons */}
           <div className="absolute bottom-8 left-0 right-0 flex gap-4 px-8 justify-center"
                style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -240,6 +353,7 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
       )}
 
       <canvas ref={canvasRef} className="hidden" />
+      <canvas ref={filterCanvasRef} className="hidden" />
     </div>
   );
 };
