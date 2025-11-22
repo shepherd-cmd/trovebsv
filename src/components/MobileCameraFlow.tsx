@@ -3,6 +3,9 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { InscriptionBottomSheet } from "./InscriptionBottomSheet";
+import { InscriptionLoadingAnimation } from "./InscriptionLoadingAnimation";
+import { InscriptionSuccessAnimation } from "./InscriptionSuccessAnimation";
 
 interface MobileCameraFlowProps {
   onClose: () => void;
@@ -14,7 +17,11 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [filteredImage, setFilteredImage] = useState<string | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [isInscribing, setIsInscribing] = useState(false);
+  const [inscriptionSuccess, setInscriptionSuccess] = useState(false);
+  const [documentTitle, setDocumentTitle] = useState("");
+  const [txid, setTxid] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filterCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -158,10 +165,12 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
     setShowOriginal(!showOriginal);
   };
 
-  const inscribeDocument = async () => {
+  const inscribeDocument = async (title: string, royaltyPercent: number) => {
     if (!capturedImage) return;
     
-    setIsProcessing(true);
+    setShowBottomSheet(false);
+    setIsInscribing(true);
+    setDocumentTitle(title);
     
     try {
       // Check if user is logged in
@@ -173,8 +182,9 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
         return;
       }
 
-      // Convert base64 to blob
-      const response = await fetch(capturedImage);
+      // Convert base64 to blob (use filtered image for inscription)
+      const imageToInscribe = filteredImage || capturedImage;
+      const response = await fetch(imageToInscribe);
       const blob = await response.blob();
       
       // Upload to Supabase storage
@@ -190,35 +200,64 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
         .from('documents')
         .getPublicUrl(fileName);
 
+      // Simulate blockchain inscription (in production, call HandCash/MoneyButton API)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      const mockTxid = `${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+      
       // Create document record
       const { error: insertError } = await supabase
         .from('documents')
         .insert({
           user_id: session.user.id,
-          title: 'Untitled Document',
+          title: title,
           category: 'Historical',
           image_url: publicUrl,
-          rarity_score: 50,
-          usefulness_score: 50,
-          price_per_page: 0.001,
+          rarity_score: 75,
+          usefulness_score: 70,
+          price_per_page: royaltyPercent / 100,
           total_pages: 1,
-          status: 'pending'
+          status: 'inscribed',
+          inscription_txid: mockTxid,
         });
 
       if (insertError) throw insertError;
 
-      // Navigate to app dashboard
-      navigate("/app");
+      setTxid(mockTxid);
+      setIsInscribing(false);
+      setInscriptionSuccess(true);
     } catch (error) {
       console.error("Inscription error:", error);
       alert("Failed to inscribe document. Please try again.");
-    } finally {
-      setIsProcessing(false);
+      setIsInscribing(false);
     }
+  };
+
+  const handleCloseSuccess = () => {
+    setInscriptionSuccess(false);
+    navigate("/app");
   };
 
   return (
     <div className="fixed inset-0 z-[100] bg-background">
+      {/* Loading Animation */}
+      {isInscribing && <InscriptionLoadingAnimation />}
+      
+      {/* Success Animation */}
+      {inscriptionSuccess && (
+        <InscriptionSuccessAnimation 
+          onClose={handleCloseSuccess}
+          documentTitle={documentTitle}
+          txid={txid}
+        />
+      )}
+      
+      {/* Bottom Sheet */}
+      {showBottomSheet && (
+        <InscriptionBottomSheet
+          onClose={() => setShowBottomSheet(false)}
+          onInscribe={inscribeDocument}
+        />
+      )}
       {/* Close button */}
       <button
         onClick={onClose}
@@ -324,7 +363,6 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
                style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <button
               onClick={retakePhoto}
-              disabled={isProcessing}
               className="flex-1 max-w-[200px] py-4 px-6 rounded-lg font-display font-bold text-lg transition-all"
               style={{
                 background: 'linear-gradient(145deg, hsl(0 0% 25%), hsl(0 0% 15%))',
@@ -336,8 +374,7 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
               Retake
             </button>
             <button
-              onClick={inscribeDocument}
-              disabled={isProcessing}
+              onClick={() => setShowBottomSheet(true)}
               className="flex-1 max-w-[200px] py-4 px-6 rounded-lg font-display font-bold text-lg transition-all"
               style={{
                 background: 'linear-gradient(145deg, hsl(38 60% 50%), hsl(38 60% 35%))',
@@ -346,7 +383,7 @@ export const MobileCameraFlow = ({ onClose }: MobileCameraFlowProps) => {
                 color: 'hsl(30 25% 10%)',
               }}
             >
-              {isProcessing ? 'Processing...' : 'Inscribe on BSV'}
+              Inscribe on BSV
             </button>
           </div>
         </div>
