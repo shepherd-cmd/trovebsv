@@ -72,7 +72,10 @@ export function AuthPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center mb-4">
-            <Book className="h-16 w-16 text-primary brass-glow" />
+            <Book 
+              className="h-16 w-16 brass-glow" 
+              style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+            />
           </div>
           <h1 className="text-5xl font-bold font-display bg-gradient-primary bg-clip-text text-transparent">
             Trove

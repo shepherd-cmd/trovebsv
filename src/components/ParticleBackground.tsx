@@ -22,15 +22,15 @@ export default function ParticleBackground() {
       opacity: number;
     }> = [];
 
-    // Create warm dust mote particles
-    for (let i = 0; i < 40; i++) {
+    // Create very subtle warm dust mote particles
+    for (let i = 0; i < 60; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        size: Math.random() * 2.5 + 0.5,
-        speedX: (Math.random() - 0.5) * 0.3,
-        speedY: Math.random() * 0.2 - 0.4, // Gentle upward drift
-        opacity: Math.random() * 0.4 + 0.1,
+        size: Math.random() * 2 + 0.3,
+        speedX: (Math.random() - 0.5) * 0.15, // Slower, more subtle
+        speedY: Math.random() * 0.15 - 0.25, // Gentle upward drift
+        opacity: Math.random() * 0.25 + 0.05, // More subtle opacity
       });
     }
 
@@ -88,12 +88,33 @@ export default function ParticleBackground() {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ 
-        background: 'radial-gradient(ellipse at 50% 20%, hsl(35 25% 12%), hsl(28 25% 8%))',
-      }}
-    />
+    <>
+      {/* Main canvas with dust motes */}
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{ 
+          background: 'radial-gradient(ellipse at 50% 20%, hsl(35 25% 12%), hsl(28 25% 8%))',
+        }}
+      />
+      
+      {/* Parchment texture overlay */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-[1] opacity-[0.03]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' /%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' /%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+        }}
+      />
+      
+      {/* Soft vignette around edges */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-[2]"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(20, 15, 10, 0.3) 70%, rgba(20, 15, 10, 0.6) 100%)',
+          boxShadow: 'inset 0 0 200px rgba(20, 15, 10, 0.4)',
+        }}
+      />
+    </>
   );
 }

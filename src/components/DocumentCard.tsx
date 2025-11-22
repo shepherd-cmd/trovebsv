@@ -111,7 +111,10 @@ export function DocumentCard({
             {/* Usefulness Score */}
             <div className="absolute top-2 left-2 z-20">
               <Badge className="bg-parchment-bg/90 text-card-foreground border border-brass-border/40 shadow-md text-xs">
-                <TrendingUp className="mr-1 h-3 w-3" />
+                <TrendingUp 
+                  className="mr-1 h-3 w-3" 
+                  style={{ color: 'hsl(35 45% 35%)', stroke: 'hsl(35 45% 35%)' }}
+                />
                 {usefulnessScore}
               </Badge>
             </div>
@@ -148,7 +151,10 @@ export function DocumentCard({
         >
           {/* Royalty Counter in Handwriting */}
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Coins className="w-4 h-4 text-primary" />
+            <Coins 
+              className="w-4 h-4" 
+              style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+            />
             <span className="font-handwriting text-lg text-primary brass-glow">
               {totalEarnings} BSV
             </span>

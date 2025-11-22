@@ -66,7 +66,10 @@ const TrustSafety = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-6 shadow-glow embossed-border">
-            <Shield className="w-12 h-12 text-primary" />
+            <Shield 
+              className="w-12 h-12" 
+              style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+            />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold font-display mb-6 text-foreground brass-glow">
             We stop 99% of fakes before they even appear
@@ -94,7 +97,10 @@ const TrustSafety = () => {
                 {/* Content */}
                 <div className="flex-1">
                   <div className="flex items-start gap-4 mb-4">
-                    <measure.icon className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
+                    <measure.icon 
+                      className="w-8 h-8 flex-shrink-0 mt-1" 
+                      style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+                    />
                     <h3 className="text-2xl font-bold font-display text-card-foreground">{measure.title}</h3>
                   </div>
                   <div className="space-y-2 text-lg text-card-foreground/80">
@@ -107,7 +113,10 @@ const TrustSafety = () => {
                 {/* Check Icon */}
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center embossed-border">
-                    <Check className="w-6 h-6 text-primary" />
+                    <Check 
+                      className="w-6 h-6" 
+                      style={{ color: 'hsl(42 88% 55%)', stroke: 'hsl(42 88% 55%)' }}
+                    />
                   </div>
                 </div>
               </div>
