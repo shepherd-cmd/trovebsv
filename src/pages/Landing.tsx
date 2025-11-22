@@ -1,21 +1,14 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
-import { FileText, Shield, Zap, TrendingUp, Search, Book, Camera, Hourglass, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Camera, Shield, TrendingUp, Search, Zap, FileText } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import libraryBg from "@/assets/hero-library-bg.jpg";
-import { MobileCameraFlow } from "@/components/MobileCameraFlow";
 import { AmbientSound } from "@/components/AmbientSound";
-import { useToast } from "@/hooks/use-toast";
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [earnings, setEarnings] = useState(0);
-  const [showCamera, setShowCamera] = useState(false);
-  const [showPermissionModal, setShowPermissionModal] = useState(false);
-  const [isLoadingCamera, setIsLoadingCamera] = useState(false);
-  const [cameraPermissionGranted, setCameraPermissionGranted] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -25,67 +18,26 @@ const Landing = () => {
   }, []);
 
   const handleOpenCamera = () => {
-    console.log("Button tapped – launching camera");
-    setIsLoadingCamera(true);
-    setShowCamera(true);
-
-    // Timeout to detect if camera doesn't initialize
-    setTimeout(() => {
-      if (isLoadingCamera) {
-        console.warn("Camera initialization timeout - showing debug toast");
-        setIsLoadingCamera(false);
-        toast({
-          title: "Dust in the gears?",
-          description: "Refresh and try again – or tap here to jump straight to upload.",
-          action: (
-            <Button
-              size="sm"
-              onClick={() => {
-                navigate("/app");
-              }}
-              className="ml-2"
-            >
-              Upload
-            </Button>
-          ),
-          duration: 5000,
-        });
-      }
-    }, 2000);
-  };
-
-  const handleCameraError = () => {
-    console.error("Camera permission denied or failed");
-    setIsLoadingCamera(false);
-    setShowCamera(false);
-    setShowPermissionModal(true);
-  };
-
-  const handleCameraSuccess = () => {
-    setIsLoadingCamera(false);
-    setCameraPermissionGranted(true);
+    navigate("/scan");
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
       <ParticleBackground />
       
-      {/* Top Bar with Shield Icon */}
       <div className="fixed top-0 left-0 right-0 z-50 leather-card border-b-2 border-brass-border/50 backdrop-blur-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
           <Link
-            to="/trust-safety"
+            to="/treasury"
             className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors group"
           >
             <Shield className="w-5 h-5 group-hover:scale-110 transition-transform text-brass-bg" />
-            <span className="text-sm font-semibold font-display">Trust & Safety</span>
+            <span className="text-sm font-semibold font-display">Treasury</span>
           </Link>
         </div>
       </div>
 
-      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 md:pt-0" style={{ paddingTop: 'max(8rem, calc(5rem + env(safe-area-inset-top)))' }}>
-        {/* Moody Antique Library Background */}
         <div className="absolute inset-0 z-0">
           <div 
             className="absolute inset-0 bg-cover bg-center"
@@ -93,18 +45,14 @@ const Landing = () => {
               backgroundImage: `url(${libraryBg})`,
             }}
           />
-          {/* Dark overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/80" />
-          {/* Extra vignette effect */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(28,25,20,0.8)_100%)]" />
         </div>
 
-        {/* Ambient Golden Glow */}
         <div className="absolute inset-0 flex items-center justify-center z-0">
           <div className="w-[600px] h-[600px] rounded-full bg-primary/8 animate-pulse-brass blur-[120px]" />
         </div>
 
-        {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-6xl mx-auto py-12 md:py-0 flex flex-col items-center justify-center min-h-screen">
           <div className="flex-1 flex flex-col items-center justify-center">
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold font-display mb-6 md:mb-8 leading-[1.1] text-primary animate-fade-in" 
@@ -123,12 +71,10 @@ const Landing = () => {
             </p>
           </div>
           
-          {/* Single Heroic Button - Positioned at bottom third */}
           <div className="pb-20 md:pb-32">
             <button
               onClick={handleOpenCamera}
-              disabled={isLoadingCamera}
-              className="group relative inline-flex items-center justify-center px-16 md:px-24 py-8 md:py-12 text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-display text-foreground overflow-hidden rounded-2xl animate-fade-in hover:scale-[1.05] active:scale-95 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="group relative inline-flex items-center justify-center px-16 md:px-24 py-8 md:py-12 text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-display text-foreground overflow-hidden rounded-2xl animate-fade-in hover:scale-[1.05] active:scale-95 transition-all duration-300"
               style={{ 
                 animationDelay: '0.4s',
                 background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
@@ -137,7 +83,6 @@ const Landing = () => {
                 textShadow: '0 3px 10px rgba(0, 0, 0, 0.9), 0 0 30px rgba(218, 165, 32, 0.5)',
               }}
             >
-              {/* Embossed leather texture overlay */}
               <div className="absolute inset-0 opacity-40 pointer-events-none" 
                    style={{
                      backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px),
@@ -145,29 +90,22 @@ const Landing = () => {
                    }} 
               />
               
-              {/* Brass corner decorations - larger */}
               <div className="absolute top-2 left-2 w-10 h-10 border-t-4 border-l-4 border-primary/70" />
               <div className="absolute top-2 right-2 w-10 h-10 border-t-4 border-r-4 border-primary/70" />
               <div className="absolute bottom-2 left-2 w-10 h-10 border-b-4 border-l-4 border-primary/70" />
               <div className="absolute bottom-2 right-2 w-10 h-10 border-b-4 border-r-4 border-primary/70" />
               
-              {/* Golden glow on hover */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer rounded-2xl" />
               
-              {isLoadingCamera ? (
-                <Hourglass className="mr-4 w-10 h-10 md:w-12 md:h-12 relative z-10 text-primary animate-spin" />
-              ) : (
-                <Camera className="mr-4 w-10 h-10 md:w-12 md:h-12 relative z-10 text-primary group-hover:scale-110 transition-transform" />
-              )}
+              <Camera className="mr-4 w-10 h-10 md:w-12 md:h-12 relative z-10 text-primary group-hover:scale-110 transition-transform" />
               <span className="relative z-10 brass-glow">
-                {isLoadingCamera ? "Opening Camera..." : "Begin Your Discovery – Free"}
+                Begin Your Discovery – Free
               </span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* The Magic in 60 Seconds */}
       <section className="py-24 px-4 relative">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold font-display text-center mb-16 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -196,7 +134,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Why This Actually Matters */}
       <section className="py-32 px-4 relative overflow-hidden bg-gradient-to-b from-background to-card">
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <h2 className="text-5xl md:text-7xl font-bold font-display mb-16 bg-gradient-to-r from-primary via-accent to-foreground bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(218,165,32,0.4)] leading-tight">
@@ -233,7 +170,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* How You Earn */}
       <section className="py-24 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-bold font-display mb-12 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -260,7 +196,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Built on Bitcoin SV */}
       <section className="py-24 px-4 bg-gradient-to-b from-background to-card">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold font-display text-center mb-16 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -297,7 +232,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Discoverable by the World */}
       <section className="py-24 px-4 bg-gradient-to-b from-card to-background">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold font-display text-center mb-12 bg-gradient-to-r from-primary to-foreground bg-clip-text text-transparent">
@@ -320,7 +254,6 @@ const Landing = () => {
             ))}
           </div>
 
-          {/* Search Box Mockup */}
           <div className="parchment-card p-8 mb-12 max-w-3xl mx-auto shadow-glow">
             <div className="relative mb-8">
               <Search 
@@ -357,101 +290,22 @@ const Landing = () => {
             </div>
           </div>
 
-          <p className="text-2xl md:text-3xl font-semibold text-center text-foreground">
-            The rarer your document, the faster buyers find it and pay you.
-          </p>
+          <div className="text-center mt-12">
+            <p className="text-2xl text-muted-foreground mb-6">
+              Every rare scan = more discovery = more royalties
+            </p>
+            <Button
+              size="lg"
+              onClick={handleOpenCamera}
+              className="text-2xl py-8 px-12 font-display"
+            >
+              <Camera className="mr-3 w-8 h-8" />
+              Start Scanning Now
+            </Button>
+          </div>
         </div>
       </section>
 
-      {/* Fixed Bottom Camera Bar - Only shown after permission granted */}
-      {cameraPermissionGranted && (
-        <div 
-          className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center py-6"
-          style={{ 
-            paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
-            background: 'linear-gradient(to top, rgba(28, 25, 20, 0.95) 0%, rgba(28, 25, 20, 0.8) 70%, transparent 100%)',
-            backdropFilter: 'blur(10px)'
-          }}
-        >
-          <button
-            onClick={handleOpenCamera}
-            className="w-20 h-20 rounded-full relative group transition-transform active:scale-95"
-            style={{
-              background: 'radial-gradient(circle, hsl(38 60% 50%) 0%, hsl(38 60% 35%) 100%)',
-              boxShadow: '0 0 40px rgba(218, 165, 32, 0.7), 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 2px 6px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.3)',
-            }}
-            aria-label="Open Camera"
-          >
-            {/* Inner ring */}
-            <div className="absolute inset-2 rounded-full bg-background/90 flex items-center justify-center group-active:scale-90 transition-transform">
-              <Camera className="w-8 h-8" style={{ color: 'hsl(38 60% 45%)' }} />
-            </div>
-            
-            {/* Subtle glow animation */}
-            <div 
-              className="absolute inset-0 rounded-full animate-pulse-brass opacity-60"
-              style={{
-                background: 'radial-gradient(circle, transparent 50%, rgba(218, 165, 32, 0.3) 100%)',
-              }}
-            />
-          </button>
-        </div>
-      )}
-
-      {/* Mobile Camera Flow */}
-      {showCamera && (
-        <MobileCameraFlow 
-          onClose={() => {
-            setShowCamera(false);
-            setIsLoadingCamera(false);
-          }} 
-          onError={handleCameraError}
-          onSuccess={handleCameraSuccess}
-        />
-      )}
-
-      {/* Camera Permission Modal */}
-      {showPermissionModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/90 backdrop-blur-md">
-          <div 
-            className="parchment-card p-8 max-w-md w-full text-center shadow-glow animate-scale-in"
-            style={{
-              background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
-              border: '3px solid hsl(38 60% 35%)',
-            }}
-          >
-            <div className="text-6xl mb-4">📸</div>
-            <h3 className="text-2xl font-bold font-display mb-4 text-primary brass-glow">
-              Camera Access Needed
-            </h3>
-            <p className="text-lg text-muted-foreground mb-6">
-              Allow camera access to scan your treasures and preserve history forever.
-            </p>
-            <div className="flex flex-col gap-3">
-              <Button
-                onClick={() => {
-                  setShowPermissionModal(false);
-                  handleOpenCamera();
-                }}
-                className="w-full text-lg py-6"
-                size="lg"
-              >
-                Try Again
-              </Button>
-              <Button
-                onClick={() => setShowPermissionModal(false)}
-                variant="outline"
-                className="w-full text-lg py-6"
-                size="lg"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Ambient Sound Control */}
       <AmbientSound />
     </div>
   );

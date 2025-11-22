@@ -16,11 +16,7 @@ let imageClassifier: any = null;
 
 export const analyzeProvenance = async (imageDataUrl: string): Promise<ProvenanceResult> => {
   try {
-    console.log('Starting provenance analysis...');
-    
-    // Initialize classifier if not already loaded
     if (!imageClassifier) {
-      console.log('Loading AI model...');
       imageClassifier = await pipeline(
         'image-classification',
         'Xenova/vit-base-patch16-224',
@@ -28,17 +24,10 @@ export const analyzeProvenance = async (imageDataUrl: string): Promise<Provenanc
       );
     }
 
-    // Run classification
     const results = await imageClassifier(imageDataUrl);
-    console.log('AI classification results:', results);
 
-    // Analyze image data for manipulation detection
     const photoshopDetected = await detectManipulation(imageDataUrl);
-    
-    // Estimate paper age from image characteristics
     const estimatedAge = estimatePaperAge(imageDataUrl);
-    
-    // Detect ink type from color analysis
     const inkType = detectInkType(imageDataUrl);
 
     // Calculate overall provenance score
