@@ -37,6 +37,18 @@ const Landing = () => {
         </div>
       </div>
 
+      {/* Onboarding Overlay */}
+      {showOnboarding && (
+        <div 
+          className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm transition-opacity duration-1000"
+          style={{
+            animation: showOnboarding ? 'none' : 'fadeOut 1s ease-out forwards'
+          }}
+        >
+          <OnboardingStory onComplete={handleOnboardingComplete} />
+        </div>
+      )}
+
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 md:pt-0" style={{ paddingTop: 'max(8rem, calc(5rem + env(safe-area-inset-top)))' }}>
         <div className="absolute inset-0 z-0">
           <div 
@@ -53,62 +65,56 @@ const Landing = () => {
           <div className="w-[600px] h-[600px] rounded-full bg-primary/8 animate-pulse-brass blur-[120px]" />
         </div>
 
-        {showOnboarding ? (
-          <div className="relative z-10 w-full">
-            <OnboardingStory onComplete={handleOnboardingComplete} />
-          </div>
-        ) : (
-          <div className="relative z-10 text-center px-4 max-w-6xl mx-auto py-12 md:py-0 flex flex-col items-center justify-center min-h-screen">
-            <div className="flex-1 flex flex-col items-center justify-center">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold font-display mb-6 md:mb-8 leading-[1.1] text-primary animate-fade-in" 
-                  style={{ 
-                    textShadow: '0 4px 20px rgba(218, 165, 32, 0.6), 0 2px 8px rgba(184, 134, 11, 0.4), 0 0 40px rgba(218, 165, 32, 0.3)',
-                    animationDelay: '0s'
-                  }}>
-                Turn your collection into perpetual Bitcoin royalties
-              </h1>
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 md:mb-12 text-foreground/95 font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed px-2 drop-shadow-lg" style={{ animationDelay: '0.2s' }}>
-                Scan anything rare hiding in your house<br className="hidden sm:block" />
-                <span className="text-accent/90 block mt-2 sm:inline sm:mt-0">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
-                <br /><br className="hidden sm:block" />
-                One tap inscribes it forever on BSV<br className="hidden sm:block" />
-                <span className="block sm:inline mt-2 sm:mt-0">You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.</span>
-              </p>
-            </div>
-            
-            <div className="pb-20 md:pb-32">
-              <button
-                onClick={handleOpenCamera}
-                className="group relative inline-flex items-center justify-center px-16 md:px-24 py-8 md:py-12 text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-display text-foreground overflow-hidden rounded-2xl animate-fade-in hover:scale-[1.05] active:scale-95 transition-all duration-300"
+        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto py-12 md:py-0 flex flex-col items-center justify-center min-h-screen">
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold font-display mb-6 md:mb-8 leading-[1.1] text-primary animate-fade-in" 
                 style={{ 
-                  animationDelay: '0.4s',
-                  background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
-                  boxShadow: '0 12px 48px rgba(0, 0, 0, 0.7), inset 0 3px 6px rgba(255, 215, 100, 0.15), inset 0 -3px 6px rgba(0, 0, 0, 0.6), 0 0 60px rgba(218, 165, 32, 0.4)',
-                  border: '4px solid hsl(38 60% 35%)',
-                  textShadow: '0 3px 10px rgba(0, 0, 0, 0.9), 0 0 30px rgba(218, 165, 32, 0.5)',
-                }}
-              >
-                <div className="absolute inset-0 opacity-40 pointer-events-none" 
-                     style={{
-                       backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px),
-                                        repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px)`
-                     }} 
-                />
-                
-                <div className="absolute top-2 left-2 w-10 h-10 border-t-4 border-l-4 border-primary/70" />
-                <div className="absolute top-2 right-2 w-10 h-10 border-t-4 border-r-4 border-primary/70" />
-                <div className="absolute bottom-2 left-2 w-10 h-10 border-b-4 border-l-4 border-primary/70" />
-                <div className="absolute bottom-2 right-2 w-10 h-10 border-b-4 border-r-4 border-primary/70" />
-                
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer rounded-2xl" />
-                
-                <span className="relative z-10 brass-glow">
-                  Begin Your Discovery – Free
-                </span>
-              </button>
-            </div>
+                  textShadow: '0 4px 20px rgba(218, 165, 32, 0.6), 0 2px 8px rgba(184, 134, 11, 0.4), 0 0 40px rgba(218, 165, 32, 0.3)',
+                  animationDelay: '0s'
+                }}>
+              Turn your collection into perpetual Bitcoin royalties
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 md:mb-12 text-foreground/95 font-normal max-w-5xl mx-auto animate-fade-in leading-relaxed px-2 drop-shadow-lg" style={{ animationDelay: '0.2s' }}>
+              Scan anything rare hiding in your house<br className="hidden sm:block" />
+              <span className="text-accent/90 block mt-2 sm:inline sm:mt-0">→ Old maps, war letters, diaries, manuscripts, photographs, postcards, certificates, ledgers, family bibles, out-of-print books, hand-drawn plans, vintage sheet music…</span>
+              <br /><br className="hidden sm:block" />
+              One tap inscribes it forever on BSV<br className="hidden sm:block" />
+              <span className="block sm:inline mt-2 sm:mt-0">You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.</span>
+            </p>
           </div>
-        )}
+          
+          <div className="pb-20 md:pb-32">
+            <button
+              onClick={handleOpenCamera}
+              className="group relative inline-flex items-center justify-center px-16 md:px-24 py-8 md:py-12 text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-display text-foreground overflow-hidden rounded-2xl animate-fade-in hover:scale-[1.05] active:scale-95 transition-all duration-300"
+              style={{ 
+                animationDelay: '0.4s',
+                background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
+                boxShadow: '0 12px 48px rgba(0, 0, 0, 0.7), inset 0 3px 6px rgba(255, 215, 100, 0.15), inset 0 -3px 6px rgba(0, 0, 0, 0.6), 0 0 60px rgba(218, 165, 32, 0.4)',
+                border: '4px solid hsl(38 60% 35%)',
+                textShadow: '0 3px 10px rgba(0, 0, 0, 0.9), 0 0 30px rgba(218, 165, 32, 0.5)',
+              }}
+            >
+              <div className="absolute inset-0 opacity-40 pointer-events-none" 
+                   style={{
+                     backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px),
+                                      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px)`
+                   }} 
+              />
+              
+              <div className="absolute top-2 left-2 w-10 h-10 border-t-4 border-l-4 border-primary/70" />
+              <div className="absolute top-2 right-2 w-10 h-10 border-t-4 border-r-4 border-primary/70" />
+              <div className="absolute bottom-2 left-2 w-10 h-10 border-b-4 border-l-4 border-primary/70" />
+              <div className="absolute bottom-2 right-2 w-10 h-10 border-b-4 border-r-4 border-primary/70" />
+              
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer rounded-2xl" />
+              
+              <span className="relative z-10 brass-glow">
+                Begin Your Discovery – Free
+              </span>
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="py-24 px-4 relative">
