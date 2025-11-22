@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Coins, Wallet, QrCode, Loader2 } from 'lucide-react';
-import { initiateHandCashAuth, TREASURY_PAYMAIL } from '@/lib/handcash';
+import { Coins, Wallet, QrCode } from 'lucide-react';
+import { TREASURY_PAYMAIL } from '@/lib/handcash';
 
 interface HandCashConnectModalProps {
   isOpen: boolean;
@@ -10,20 +10,8 @@ interface HandCashConnectModalProps {
   onConnect: () => void;
 }
 
-export const HandCashConnectModal = ({ isOpen, onClose, onConnect }: HandCashConnectModalProps) => {
-  const [showQR, setShowQR] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  const handleHandCashConnect = () => {
-    setIsConnecting(true);
-    try {
-      // Trigger HandCash OAuth redirect flow
-      initiateHandCashAuth();
-    } catch (error) {
-      console.error('Failed to initiate HandCash auth:', error);
-      setIsConnecting(false);
-    }
-  };
+export const HandCashConnectModal = ({ isOpen, onClose }: HandCashConnectModalProps) => {
+  const [showQR] = useState(false);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -47,52 +35,20 @@ export const HandCashConnectModal = ({ isOpen, onClose, onConnect }: HandCashCon
             Connect Your Attic Vault
           </DialogTitle>
           <DialogDescription className="text-center font-body text-muted-foreground">
-            Use your existing HandCash account for instant payments and royalties
+            HandCash integration coming soon for instant payments and royalties
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 mt-6">
           {!showQR ? (
             <>
-              {/* Primary HandCash Connect */}
+              {/* Primary HandCash Connect - Coming Soon */}
               <Button
-                onClick={handleHandCashConnect}
-                disabled={isConnecting}
-                className="w-full py-6 text-lg brass-button"
+                disabled
+                className="w-full py-6 text-lg brass-button opacity-50 cursor-not-allowed"
               >
-                {isConnecting ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Coins className="mr-2 h-5 w-5" />
-                    Connect with HandCash
-                  </>
-                )}
-              </Button>
-
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t" style={{ borderColor: 'hsl(38 60% 45% / 0.2)' }} />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground font-body">
-                    Or
-                  </span>
-                </div>
-              </div>
-
-              {/* Manual QR Fallback */}
-              <Button
-                onClick={() => setShowQR(true)}
-                variant="outline"
-                className="w-full"
-              >
-                <QrCode className="mr-2 h-4 w-4" />
-                Show QR Code for Manual Payment
+                <Coins className="mr-2 h-5 w-5" />
+                Connect with HandCash (Coming Soon)
               </Button>
             </>
           ) : (
@@ -126,14 +82,6 @@ export const HandCashConnectModal = ({ isOpen, onClose, onConnect }: HandCashCon
                   {TREASURY_PAYMAIL}
                 </code>
               </div>
-
-              <Button
-                onClick={() => setShowQR(false)}
-                variant="ghost"
-                className="w-full"
-              >
-                Back to HandCash Connect
-              </Button>
             </div>
           )}
         </div>
