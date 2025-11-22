@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Coins, Wallet, QrCode } from 'lucide-react';
+import { Coins, Wallet, QrCode, Loader2 } from 'lucide-react';
+import { initiateHandCashAuth, TREASURY_PAYMAIL } from '@/lib/handcash';
 
 interface HandCashConnectModalProps {
   isOpen: boolean;
@@ -11,24 +12,16 @@ interface HandCashConnectModalProps {
 
 export const HandCashConnectModal = ({ isOpen, onClose, onConnect }: HandCashConnectModalProps) => {
   const [showQR, setShowQR] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleHandCashConnect = () => {
-    // HandCash OAuth-like flow
-    // In production, this would redirect to HandCash's OAuth endpoint
-    const handcashAuthUrl = `https://app.handcash.io/authorizeApp?appId=YOUR_APP_ID&redirectUrl=${encodeURIComponent(window.location.origin + '/auth/callback')}`;
-    
-    // For mobile deep-linking
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      // Try deep link first
-      window.location.href = `handcash://authorize?appId=YOUR_APP_ID`;
-      
-      // Fallback to web if deep link fails
-      setTimeout(() => {
-        window.location.href = handcashAuthUrl;
-      }, 1500);
-    } else {
-      window.location.href = handcashAuthUrl;
+    setIsConnecting(true);
+    try {
+      // Trigger HandCash OAuth redirect flow
+      initiateHandCashAuth();
+    } catch (error) {
+      console.error('Failed to initiate HandCash auth:', error);
+      setIsConnecting(false);
     }
   };
 
@@ -51,10 +44,10 @@ export const HandCashConnectModal = ({ isOpen, onClose, onConnect }: HandCashCon
           </div>
           
           <DialogTitle className="text-2xl font-bold font-display text-center" style={{ color: 'hsl(38 60% 45%)' }}>
-            Connect Your HandCash
+            Connect Your Attic Vault
           </DialogTitle>
           <DialogDescription className="text-center font-body text-muted-foreground">
-            Link HandCash for seamless royalty payments and instant BSV transactions
+            Use your existing HandCash account for instant payments and royalties
           </DialogDescription>
         </DialogHeader>
 
@@ -64,10 +57,20 @@ export const HandCashConnectModal = ({ isOpen, onClose, onConnect }: HandCashCon
               {/* Primary HandCash Connect */}
               <Button
                 onClick={handleHandCashConnect}
+                disabled={isConnecting}
                 className="w-full py-6 text-lg brass-button"
               >
-                <Coins className="mr-2 h-5 w-5" />
-                Connect with HandCash
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Coins className="mr-2 h-5 w-5" />
+                    Connect with HandCash
+                  </>
+                )}
               </Button>
 
               {/* Divider */}
@@ -120,7 +123,7 @@ export const HandCashConnectModal = ({ isOpen, onClose, onConnect }: HandCashCon
                     color: 'hsl(42 88% 55%)',
                   }}
                 >
-                  $trove-treasury@handcash.io
+                  {TREASURY_PAYMAIL}
                 </code>
               </div>
 
