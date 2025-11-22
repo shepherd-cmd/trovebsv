@@ -11,9 +11,10 @@ import { haptics } from "@/utils/haptics";
 interface MobileCameraFlowProps {
   onClose: () => void;
   onError?: () => void;
+  onSuccess?: () => void;
 }
 
-export const MobileCameraFlow = ({ onClose, onError }: MobileCameraFlowProps) => {
+export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFlowProps) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -47,6 +48,10 @@ export const MobileCameraFlow = ({ onClose, onError }: MobileCameraFlowProps) =>
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+      }
+      // Notify success once camera is ready
+      if (onSuccess) {
+        onSuccess();
       }
     } catch (error) {
       console.error("Camera access error:", error);

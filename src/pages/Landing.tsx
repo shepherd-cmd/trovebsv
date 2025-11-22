@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
-import { FileText, Shield, Zap, TrendingUp, Search, Book, Camera } from "lucide-react";
+import { FileText, Shield, Zap, TrendingUp, Search, Book, Camera, Hourglass, Upload } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import libraryBg from "@/assets/hero-library-bg.jpg";
 import { MobileCameraFlow } from "@/components/MobileCameraFlow";
 import { AmbientSound } from "@/components/AmbientSound";
+import { useToast } from "@/hooks/use-toast";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [earnings, setEarnings] = useState(0);
   const [showCamera, setShowCamera] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [isLoadingCamera, setIsLoadingCamera] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -22,13 +25,43 @@ const Landing = () => {
 
   const handleOpenCamera = () => {
     console.log("Button tapped – launching camera");
+    setIsLoadingCamera(true);
     setShowCamera(true);
+
+    // Timeout to detect if camera doesn't initialize
+    setTimeout(() => {
+      if (isLoadingCamera) {
+        console.warn("Camera initialization timeout - showing debug toast");
+        setIsLoadingCamera(false);
+        toast({
+          title: "Dust in the gears?",
+          description: "Refresh and try again – or tap here to jump straight to upload.",
+          action: (
+            <Button
+              size="sm"
+              onClick={() => {
+                navigate("/app");
+              }}
+              className="ml-2"
+            >
+              Upload
+            </Button>
+          ),
+          duration: 5000,
+        });
+      }
+    }, 2000);
   };
 
   const handleCameraError = () => {
     console.error("Camera permission denied or failed");
+    setIsLoadingCamera(false);
     setShowCamera(false);
     setShowPermissionModal(true);
+  };
+
+  const handleCameraSuccess = () => {
+    setIsLoadingCamera(false);
   };
 
   return (
@@ -86,38 +119,64 @@ const Landing = () => {
             <span className="block sm:inline mt-2 sm:mt-0">You earn royalties every single time researchers, historians, documentary makers, or AI companies read a page.</span>
           </p>
           
-          {/* Leather Book / Brass Plate CTA Button */}
-          <button
-            onClick={handleOpenCamera}
-            className="group relative inline-flex items-center justify-center px-12 md:px-16 py-6 md:py-8 text-xl md:text-2xl lg:text-3xl font-bold font-display text-foreground overflow-hidden rounded-lg animate-fade-in hover:scale-[1.02] transition-all duration-300"
-            style={{ 
-              animationDelay: '0.4s',
-              background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 215, 100, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(218, 165, 32, 0.3)',
-              border: '3px solid hsl(38 60% 35%)',
-              textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(218, 165, 32, 0.4)',
-            }}
-          >
-            {/* Leather texture overlay */}
-            <div className="absolute inset-0 opacity-30 pointer-events-none" 
-                 style={{
-                   backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px),
-                                    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px)`
-                 }} 
-            />
-            
-            {/* Brass corner decorations */}
-            <div className="absolute top-1 left-1 w-6 h-6 border-t-2 border-l-2 border-primary/60" />
-            <div className="absolute top-1 right-1 w-6 h-6 border-t-2 border-r-2 border-primary/60" />
-            <div className="absolute bottom-1 left-1 w-6 h-6 border-b-2 border-l-2 border-primary/60" />
-            <div className="absolute bottom-1 right-1 w-6 h-6 border-b-2 border-r-2 border-primary/60" />
-            
-            {/* Shimmer effect on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-shimmer" />
-            
-            <Book className="mr-3 w-7 h-7 md:w-8 md:h-8 relative z-10 text-primary group-hover:scale-110 transition-transform" />
-            <span className="relative z-10 brass-glow">Begin Your Discovery – Free</span>
-          </button>
+          {/* CTA Buttons Container */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+            {/* Main Camera CTA Button */}
+            <button
+              onClick={handleOpenCamera}
+              disabled={isLoadingCamera}
+              className="group relative inline-flex items-center justify-center px-12 md:px-16 py-6 md:py-8 text-xl md:text-2xl lg:text-3xl font-bold font-display text-foreground overflow-hidden rounded-lg animate-fade-in hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+              style={{ 
+                animationDelay: '0.4s',
+                background: 'linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%))',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 215, 100, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(218, 165, 32, 0.3)',
+                border: '3px solid hsl(38 60% 35%)',
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(218, 165, 32, 0.4)',
+              }}
+            >
+              {/* Leather texture overlay */}
+              <div className="absolute inset-0 opacity-30 pointer-events-none" 
+                   style={{
+                     backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px),
+                                      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px)`
+                   }} 
+              />
+              
+              {/* Brass corner decorations */}
+              <div className="absolute top-1 left-1 w-6 h-6 border-t-2 border-l-2 border-primary/60" />
+              <div className="absolute top-1 right-1 w-6 h-6 border-t-2 border-r-2 border-primary/60" />
+              <div className="absolute bottom-1 left-1 w-6 h-6 border-b-2 border-l-2 border-primary/60" />
+              <div className="absolute bottom-1 right-1 w-6 h-6 border-b-2 border-r-2 border-primary/60" />
+              
+              {/* Shimmer effect on hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-shimmer" />
+              
+              {isLoadingCamera ? (
+                <Hourglass className="mr-3 w-7 h-7 md:w-8 md:h-8 relative z-10 text-primary animate-spin" />
+              ) : (
+                <Book className="mr-3 w-7 h-7 md:w-8 md:h-8 relative z-10 text-primary group-hover:scale-110 transition-transform" />
+              )}
+              <span className="relative z-10 brass-glow">
+                {isLoadingCamera ? "Opening Camera..." : "Begin Your Discovery – Free"}
+              </span>
+            </button>
+
+            {/* Upload from Gallery Button */}
+            <button
+              onClick={() => navigate("/app")}
+              className="group relative inline-flex items-center justify-center px-8 md:px-12 py-6 md:py-8 text-lg md:text-xl lg:text-2xl font-semibold font-display text-foreground overflow-hidden rounded-lg animate-fade-in hover:scale-[1.02] transition-all duration-300"
+              style={{ 
+                animationDelay: '0.5s',
+                background: 'linear-gradient(145deg, hsl(35 20% 22%), hsl(30 18% 16%))',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 215, 100, 0.1), inset 0 -1px 2px rgba(0, 0, 0, 0.4)',
+                border: '2px solid hsl(38 50% 30%)',
+                textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)',
+              }}
+            >
+              <Upload className="mr-2 w-5 h-5 md:w-6 md:h-6 relative z-10 text-primary/80 group-hover:scale-110 transition-transform" />
+              <span className="relative z-10">Upload from Gallery</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -387,8 +446,12 @@ const Landing = () => {
       {/* Mobile Camera Flow */}
       {showCamera && (
         <MobileCameraFlow 
-          onClose={() => setShowCamera(false)} 
+          onClose={() => {
+            setShowCamera(false);
+            setIsLoadingCamera(false);
+          }} 
           onError={handleCameraError}
+          onSuccess={handleCameraSuccess}
         />
       )}
 
