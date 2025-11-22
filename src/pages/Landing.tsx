@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
-import { FileText, Shield, Zap, TrendingUp, Search, Book } from "lucide-react";
+import { FileText, Shield, Zap, TrendingUp, Search, Book, Camera } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import libraryBg from "@/assets/hero-library-bg.jpg";
+import { MobileCameraFlow } from "@/components/MobileCameraFlow";
 
 const Landing = () => {
   const navigate = useNavigate();
   const [earnings, setEarnings] = useState(0);
+  const [showCamera, setShowCamera] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -336,16 +338,41 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Sticky Bottom Bar (Mobile) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 leather-card border-t-2 border-brass-border/50 backdrop-blur-md p-4 z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <Button
-          size="lg"
-          onClick={() => navigate("/app")}
-          className="w-full text-lg py-6"
+      {/* Fixed Bottom Camera Bar (Mobile-First) */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center py-6"
+        style={{ 
+          paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
+          background: 'linear-gradient(to top, rgba(28, 25, 20, 0.95) 0%, rgba(28, 25, 20, 0.8) 70%, transparent 100%)',
+          backdropFilter: 'blur(10px)'
+        }}
+      >
+        <button
+          onClick={() => setShowCamera(true)}
+          className="w-20 h-20 rounded-full relative group transition-transform active:scale-95"
+          style={{
+            background: 'radial-gradient(circle, hsl(38 60% 50%) 0%, hsl(38 60% 35%) 100%)',
+            boxShadow: '0 0 40px rgba(218, 165, 32, 0.7), 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 2px 6px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.3)',
+          }}
+          aria-label="Open Camera"
         >
-          Start Scanning – Free
-        </Button>
+          {/* Inner ring */}
+          <div className="absolute inset-2 rounded-full bg-background/90 flex items-center justify-center group-active:scale-90 transition-transform">
+            <Camera className="w-8 h-8" style={{ color: 'hsl(38 60% 45%)' }} />
+          </div>
+          
+          {/* Subtle glow animation */}
+          <div 
+            className="absolute inset-0 rounded-full animate-pulse-brass opacity-60"
+            style={{
+              background: 'radial-gradient(circle, transparent 50%, rgba(218, 165, 32, 0.3) 100%)',
+            }}
+          />
+        </button>
       </div>
+
+      {/* Mobile Camera Flow */}
+      {showCamera && <MobileCameraFlow onClose={() => setShowCamera(false)} />}
     </div>
   );
 };
