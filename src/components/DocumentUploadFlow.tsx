@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { VintageCamera } from '@/components/VintageCamera';
 
 const CATEGORIES = [
   'Maps', 'Diaries', 'Letters', 'Manuscripts', 'Books', 
@@ -43,6 +44,9 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
   const [walletType, setWalletType] = useState<'handcash' | 'relayx' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [inscriptionData, setInscriptionData] = useState<any>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraMode, setCameraMode] = useState<'document' | 'provenance' | null>(null);
+  const [currentProvenanceType, setCurrentProvenanceType] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const provenanceInputRef = useRef<HTMLInputElement>(null);
@@ -58,13 +62,27 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
     setProvenancePhotos(prev => ({ ...prev, [type]: file }));
   };
 
+  const openCamera = (mode: 'document' | 'provenance', provenanceType?: string) => {
+    setCameraMode(mode);
+    if (provenanceType) {
+      setCurrentProvenanceType(provenanceType);
+    }
+    setShowCamera(true);
+  };
+
+  const handleCameraCapture = (file: File) => {
+    if (cameraMode === 'document') {
+      setDocumentPhotos(prev => [...prev, file]);
+    } else if (cameraMode === 'provenance' && currentProvenanceType) {
+      handleProvenancePhoto(currentProvenanceType, file);
+    }
+    setShowCamera(false);
+    setCameraMode(null);
+    setCurrentProvenanceType(null);
+  };
+
   const captureProvenancePhoto = (type: string) => {
-    provenanceInputRef.current?.click();
-    provenanceInputRef.current!.onchange = (e: any) => {
-      if (e.target.files?.[0]) {
-        handleProvenancePhoto(type, e.target.files[0]);
-      }
-    };
+    openCamera('provenance', type);
   };
 
   const allProvenancePhotosCollected = () => {
@@ -203,6 +221,17 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
 
   return (
     <div className="max-w-2xl mx-auto p-6">
+      {showCamera && (
+        <VintageCamera
+          onCapture={handleCameraCapture}
+          onClose={() => {
+            setShowCamera(false);
+            setCameraMode(null);
+            setCurrentProvenanceType(null);
+          }}
+        />
+      )}
+      
       {step === 'photos' && (
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-4">Step 1: Capture Document Photos</h2>
@@ -218,8 +247,8 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
             className="hidden"
           />
           
-          <Button onClick={() => fileInputRef.current?.click()} className="w-full mb-4">
-            <Camera className="mr-2" />
+          <Button onClick={() => openCamera('document')} className="w-full mb-4">
+            <Camera className="mr-2" style={{ color: 'hsl(30 25% 10%)' }} />
             Capture Document Pages ({documentPhotos.length} photos)
           </Button>
 
@@ -267,10 +296,13 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
                   <span>{label}</span>
                 </div>
                 {provenancePhotos[id] ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <CheckCircle 
+                    className="w-5 h-5" 
+                    style={{ color: 'hsl(120 60% 50%)' }}
+                  />
                 ) : (
                   <Button onClick={() => captureProvenancePhoto(id)} size="sm">
-                    <Camera className="w-4 h-4 mr-1" />
+                    <Camera className="w-4 h-4 mr-1" style={{ color: 'hsl(30 25% 10%)' }} />
                     Capture
                   </Button>
                 )}
@@ -409,7 +441,10 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
       {step === 'inscribing' && (
         <Card className="p-6 text-center">
           <div className="animate-pulse mb-4">
-            <Upload className="w-16 h-16 mx-auto text-primary" />
+            <Upload 
+              className="w-16 h-16 mx-auto" 
+              style={{ color: 'hsl(38 60% 45%)', stroke: 'hsl(38 60% 45%)' }}
+            />
           </div>
           <h2 className="text-2xl font-bold mb-2">Inscribing to BSV Blockchain</h2>
           <p className="text-muted-foreground">Please wait while we inscribe your document as a 1Sat Ordinal...</p>
@@ -435,9 +470,12 @@ export default function DocumentUploadFlow({ onComplete }: { onComplete: () => v
           
           <div className="text-center mb-8 relative z-10">
             <div className="inline-block p-6 glass-card rounded-3xl mb-6 animate-diamond-spin">
-              <CheckCircle className="w-20 h-20 neon-glow" />
+              <CheckCircle 
+                className="w-20 h-20 brass-glow" 
+                style={{ color: 'hsl(120 60% 50%)', stroke: 'hsl(120 60% 50%)' }}
+              />
             </div>
-            <h2 className="text-4xl font-bold mb-3 neon-glow">Successfully Inscribed!</h2>
+            <h2 className="text-4xl font-bold mb-3 brass-glow font-display text-primary">Successfully Inscribed!</h2>
             <p className="text-muted-foreground text-lg">Your document is now on the BSV blockchain</p>
           </div>
 
