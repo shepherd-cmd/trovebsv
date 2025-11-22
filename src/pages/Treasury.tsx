@@ -12,6 +12,14 @@ interface TreasuryStats {
   sponsoredInscriptionsLeft: number;
 }
 
+interface TreasuryTransaction {
+  id: string;
+  username: string;
+  amount: number;
+  transaction_type: string;
+  created_at: string;
+}
+
 const Treasury = () => {
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<TreasuryStats>({
@@ -20,6 +28,8 @@ const Treasury = () => {
     totalRoyaltiesPaid: 0,
     sponsoredInscriptionsLeft: 50,
   });
+  const [recentTransactions, setRecentTransactions] = useState<TreasuryTransaction[]>([]);
+  const [showDonationPrompt, setShowDonationPrompt] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,25 +59,52 @@ const Treasury = () => {
   }, [user]);
 
   const loadTreasuryStats = async () => {
-    // Get all document unlocks to calculate treasury and royalties
+    // Get treasury balance from HandCash
+    const { data: balanceData } = await supabase.functions.invoke('get-treasury-balance');
+    const treasuryBalanceBSV = balanceData?.balanceBSV || 0;
+
+    // Get all document unlocks to calculate royalties
     const { data: unlocks } = await supabase
       .from('document_unlocks')
-      .select('platform_share, owner_share');
+      .select('owner_share');
 
     // Get total number of documents
     const { count: documentsCount } = await supabase
       .from('documents')
       .select('*', { count: 'exact', head: true });
 
+    // Calculate total free inscriptions remaining across all Lifetime Archivists
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('free_inscriptions_remaining')
+      .eq('lifetime_archivist', true);
+    
+    const totalFreeInscriptionsLeft = profiles?.reduce((sum, p) => sum + (p.free_inscriptions_remaining || 0), 0) || 0;
+
+    // Get recent treasury transactions
+    const { data: transactions } = await supabase
+      .from('treasury_transactions')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (transactions) {
+      setRecentTransactions(transactions);
+    }
+
+    // Show donation prompt if treasury is low
+    if (treasuryBalanceBSV < 100) {
+      setShowDonationPrompt(true);
+    }
+
     if (unlocks) {
-      const treasuryTotal = unlocks.reduce((sum, unlock) => sum + Number(unlock.platform_share), 0);
       const royaltiesTotal = unlocks.reduce((sum, unlock) => sum + Number(unlock.owner_share), 0);
 
       setStats({
-        totalBsvInTreasury: treasuryTotal,
+        totalBsvInTreasury: treasuryBalanceBSV,
         totalTreasuresPreserved: documentsCount || 0,
         totalRoyaltiesPaid: royaltiesTotal,
-        sponsoredInscriptionsLeft: 50, // TODO: Track this in database
+        sponsoredInscriptionsLeft: totalFreeInscriptionsLeft,
       });
     }
   };
@@ -413,6 +450,87 @@ const Treasury = () => {
             </div>
           </div>
         </div>
+
+        {/* Donation Prompt */}
+        {showDonationPrompt && (
+          <div className="mt-12 max-w-2xl mx-auto">
+            <div 
+              className="parchment-card p-8 text-center relative overflow-hidden"
+              style={{
+                backgroundImage: `
+                  radial-gradient(circle at 50% 50%, rgba(218, 165, 32, 0.08) 0%, transparent 60%)
+                `,
+                border: '2px solid hsl(42 88% 55% / 0.3)',
+              }}
+            >
+              <TrendingUp className="h-12 w-12 mx-auto mb-4" style={{ color: 'hsl(42 88% 55%)' }} />
+              <h3 className="text-2xl font-bold font-display mb-2" style={{ color: 'hsl(42 88% 55%)' }}>
+                Help Grow The Vault
+              </h3>
+              <p className="text-muted-foreground font-body mb-6">
+                The treasury is running low. Your donation helps sponsor free inscriptions for new archivists and preserves history for future generations.
+              </p>
+              <Button 
+                className="brass-button"
+                onClick={() => {
+                  // TODO: Implement donation flow
+                  console.log('Donate clicked');
+                }}
+              >
+                <Coins className="mr-2 h-4 w-4" />
+                Contribute to Treasury
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Sponsored Inscriptions */}
+        {recentTransactions.length > 0 && (
+          <div className="mt-12 max-w-4xl mx-auto">
+            <h3 className="text-2xl font-bold font-display mb-6 text-center" style={{ color: 'hsl(38 60% 45%)' }}>
+              Recent Treasury Activity
+            </h3>
+            <div className="parchment-card p-6">
+              <div className="space-y-3">
+                {recentTransactions.map((tx) => (
+                  <div 
+                    key={tx.id}
+                    className="flex items-center justify-between p-4 rounded-lg"
+                    style={{
+                      background: 'linear-gradient(90deg, rgba(139, 90, 0, 0.05) 0%, transparent 100%)',
+                      borderLeft: '3px solid hsl(42 88% 55% / 0.3)',
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Gift className="h-5 w-5" style={{ color: 'hsl(42 88% 55%)' }} />
+                      <div>
+                        <p className="font-body text-foreground">
+                          Gifted Inscription to <span className="font-semibold">@{tx.username}</span>
+                        </p>
+                        <p className="text-xs text-muted-foreground font-body">
+                          {new Date(tx.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold font-body" style={{ color: 'hsl(42 88% 55%)' }}>
+                        {Math.abs(tx.amount).toFixed(8)} BSV
+                      </p>
+                      <p className="text-xs text-muted-foreground font-body">
+                        ≈ ${(Math.abs(tx.amount) * 50).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer Info */}
         <div className="mt-16 text-center max-w-2xl mx-auto">

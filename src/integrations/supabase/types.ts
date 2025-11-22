@@ -217,6 +217,36 @@ export type Database = {
           },
         ]
       }
+      treasury_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          transaction_type: string
+          txid: string | null
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          transaction_type: string
+          txid?: string | null
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          transaction_type?: string
+          txid?: string | null
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
