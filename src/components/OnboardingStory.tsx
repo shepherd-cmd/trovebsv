@@ -42,6 +42,10 @@ export const OnboardingStory = ({ onComplete }: OnboardingStoryProps) => {
     return () => clearTimeout(timer);
   }, [currentStep]);
 
+  const handleSkip = () => {
+    onComplete();
+  };
+
   const handleNext = () => {
     if (isTransitioning) return;
     
@@ -71,40 +75,54 @@ export const OnboardingStory = ({ onComplete }: OnboardingStoryProps) => {
   const step = steps[currentStep];
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto px-4 py-12 md:py-20">
-      {/* Progress dots */}
-      <div className="flex justify-center gap-2 mb-8">
-        {steps.map((_, index) => (
-          <div
-            key={index}
-            className="w-2 h-2 rounded-full transition-all duration-300"
-            style={{
-              backgroundColor: index === currentStep 
-                ? 'hsl(42 88% 55%)' 
-                : 'hsl(38 60% 45% / 0.3)',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Main card */}
-      <div
-        onClick={handleNext}
-        className={`
-          relative cursor-pointer overflow-hidden rounded-lg
-          transition-all duration-600 ease-out
-          ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
-          ${step.bgClass}
-          parchment-card border-2
-          hover:shadow-elegant
-          min-h-[500px] md:min-h-[600px]
-          flex flex-col items-center justify-center
-          p-8 md:p-16
-        `}
+    <div className="relative w-full h-full min-h-screen flex items-center justify-center px-4 py-12">
+      {/* Skip button */}
+      <button
+        onClick={handleSkip}
+        className="absolute top-8 right-8 z-20 text-sm font-body px-4 py-2 rounded-lg transition-all hover:scale-105"
         style={{
-          borderColor: 'hsl(42 88% 55% / 0.3)',
+          color: 'hsl(38 60% 65%)',
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(10px)',
         }}
       >
+        Skip
+      </button>
+
+      <div className="w-full max-w-6xl">
+        {/* Progress dots */}
+        <div className="flex justify-center gap-2 mb-8">
+          {steps.map((_, index) => (
+            <div
+              key={index}
+              className="w-2 h-2 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: index === currentStep 
+                  ? 'hsl(42 88% 55%)' 
+                  : 'hsl(38 60% 45% / 0.3)',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Main card */}
+        <div
+          onClick={handleNext}
+          className={`
+            relative cursor-pointer overflow-hidden rounded-lg
+            transition-all duration-600 ease-out
+            ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
+            ${step.bgClass}
+            parchment-card border-2
+            hover:shadow-elegant
+            min-h-[500px] md:min-h-[600px]
+            flex flex-col items-center justify-center
+            p-8 md:p-16
+          `}
+          style={{
+            borderColor: 'hsl(42 88% 55% / 0.3)',
+          }}
+        >
         {/* Vignette overlay */}
         <div 
           className="absolute inset-0 pointer-events-none"
@@ -182,6 +200,7 @@ export const OnboardingStory = ({ onComplete }: OnboardingStoryProps) => {
               }}
             />
           ))}
+        </div>
         </div>
       </div>
     </div>
