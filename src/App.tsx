@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import TrustSafety from "./pages/TrustSafety";
 import MyVault from "./pages/MyVault";
 import TheVault from "./pages/TheVault";
+import Treasury from "./pages/Treasury";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/app" element={<Index />} />
           <Route path="/vault" element={<MyVault />} />
           <Route path="/the-vault" element={<TheVault />} />
+          <Route path="/treasury" element={<Treasury />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/trust-safety" element={<TrustSafety />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
