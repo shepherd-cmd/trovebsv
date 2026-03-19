@@ -41,45 +41,43 @@ function FeatureCards() {
           <button
             key={idx}
             onClick={() => setOpenIdx(isOpen ? null : idx)}
-            className="parchment-card p-6 text-center hover-brass group text-left w-full transition-all duration-300 tap-target"
+            className="parchment-card p-6 hover-brass w-full transition-all duration-300 tap-target"
             style={{
               border: isOpen ? '1px solid hsl(42 88% 55% / 0.5)' : undefined,
               boxShadow: isOpen ? '0 0 20px rgba(218,165,32,0.15)' : undefined,
             }}
           >
+            {/* Always visible: icon, title, subtitle */}
             <item.icon
-              className="w-8 h-8 mx-auto mb-3 transition-transform duration-300"
-              style={{
-                color: 'hsl(42 95% 60%)',
-                transform: isOpen ? 'scale(1.15)' : undefined,
-              }}
+              className="w-8 h-8 mx-auto mb-3"
+              style={{ color: 'hsl(42 95% 60%)' }}
             />
-            <h3 className="text-base font-bold font-display mb-1 text-primary text-center">{item.title}</h3>
+            <h3 className="text-base font-bold font-display mb-1 text-primary text-center">
+              {item.title}
+            </h3>
             <p className="text-sm text-muted-foreground text-center">{item.desc}</p>
 
-            {/* Expandable synopsis */}
-            <div
-              className="overflow-hidden transition-all duration-300"
-              style={{ maxHeight: isOpen ? '200px' : '0px', opacity: isOpen ? 1 : 0 }}
-            >
+            {/* Hint when closed */}
+            {!isOpen && (
+              <p className="text-xs mt-3 text-center" style={{ color: 'hsl(42 88% 55% / 0.55)' }}>
+                tap to learn more
+              </p>
+            )}
+
+            {/* Synopsis — only rendered when open */}
+            {isOpen && (
               <div
                 className="mt-4 pt-4 text-sm text-left leading-relaxed"
                 style={{
-                  borderTop: '1px solid hsl(42 88% 55% / 0.2)',
-                  color: 'hsl(30 20% 75%)',
+                  borderTop: '1px solid hsl(42 88% 55% / 0.25)',
+                  color: 'hsl(30 20% 78%)',
                 }}
               >
                 {item.synopsis}
+                <p className="text-xs mt-3 text-center" style={{ color: 'hsl(42 88% 55% / 0.55)' }}>
+                  tap to close
+                </p>
               </div>
-              <p className="text-xs mt-3 text-center" style={{ color: 'hsl(42 88% 55% / 0.6)' }}>
-                tap to close
-              </p>
-            </div>
-
-            {!isOpen && (
-              <p className="text-xs mt-2 text-center" style={{ color: 'hsl(42 88% 55% / 0.5)' }}>
-                tap to learn more
-              </p>
             )}
           </button>
         );
