@@ -24,6 +24,7 @@ interface RecentDoc {
   owner_paymail: string;
   rarity_score: number;
   created_at: string;
+  ai_analysis?: { teaser?: string } | null;
 }
 
 const PLACEHOLDERS: RecentDoc[] = [
@@ -34,7 +35,8 @@ const PLACEHOLDERS: RecentDoc[] = [
     image_url: 'https://picsum.photos/seed/ww1letter/600/600',
     owner_paymail: '$archive_demo',
     rarity_score: 87,
-    created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(), // 20 mins ago
+    created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+    ai_analysis: { teaser: "He wrote it in a shell crater with borrowed ink, not knowing if he'd ever send it. She kept it in her apron pocket for 60 years." },
   },
   {
     id: 'demo-2',
@@ -43,7 +45,8 @@ const PLACEHOLDERS: RecentDoc[] = [
     image_url: 'https://picsum.photos/seed/victorian1887/600/600',
     owner_paymail: '$archive_demo',
     rarity_score: 74,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3 hrs ago
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+    ai_analysis: { teaser: "Seven faces. Six survive the decade. The youngest child — not yet two — would go on to become one of Sheffield's most wanted men." },
   },
   {
     id: 'demo-3',
@@ -52,7 +55,8 @@ const PLACEHOLDERS: RecentDoc[] = [
     image_url: 'https://picsum.photos/seed/rationbook43/600/600',
     owner_paymail: '$archive_demo',
     rarity_score: 91,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString(), // 7 hrs ago
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString(),
+    ai_analysis: { teaser: "Margaret Doyle fed four children on coupons worth less than a modern supermarket receipt. Every counterfoil tells you exactly what survival tasted like." },
   },
 ];
 
@@ -72,7 +76,7 @@ function RecentlyUploaded() {
   useEffect(() => {
     supabase
       .from('documents')
-      .select('id, title, image_url, category, owner_paymail, rarity_score, created_at')
+      .select('id, title, image_url, category, owner_paymail, rarity_score, created_at, ai_analysis')
       .eq('delisted', false)
       .eq('status', 'inscribed')
       .order('created_at', { ascending: false })
@@ -152,7 +156,15 @@ function RecentlyUploaded() {
                   style={{ transform: `rotate(${rotation[i]}deg)` }}
                   onMouseEnter={() => isReal && setHoveredId(doc.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  onClick={() => isReal && setSelectedDoc(doc)}
+                  onTouchStart={() => isReal && setHoveredId(doc.id === hoveredId ? null : doc.id)}
+                  onClick={() => {
+                    if (!isReal) return;
+                    if (hoveredId === doc.id) {
+                      setSelectedDoc(doc);
+                    } else {
+                      setHoveredId(doc.id);
+                    }
+                  }}
                 >
                   {/* Polaroid frame */}
                   <div
@@ -195,18 +207,20 @@ function RecentlyUploaded() {
                         </div>
                       )}
 
-                      {/* Hover overlay — synopsis + uncover prompt */}
+                      {/* Hover overlay — teaser + uncover prompt */}
                       {isHovered && isReal && (
                         <div
                           className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center"
-                          style={{ background: 'rgba(0,0,0,0.72)' }}
+                          style={{ background: 'rgba(0,0,0,0.78)' }}
                         >
-                          <p className="text-xs font-semibold leading-snug" style={{ color: 'hsl(42 88% 80%)' }}>
-                            {doc.title}
-                          </p>
                           {doc.category && (
-                            <p className="text-xs" style={{ color: 'hsl(30 20% 65%)' }}>{doc.category}</p>
+                            <p className="text-xs uppercase tracking-wider" style={{ color: 'hsl(42 88% 55%)' }}>
+                              {doc.category}
+                            </p>
                           )}
+                          <p className="text-xs leading-snug italic" style={{ color: 'hsl(38 60% 88%)' }}>
+                            {doc.ai_analysis?.teaser ?? doc.title}
+                          </p>
                           <div
                             className="mt-1 px-3 py-1 text-xs font-bold font-display rounded-sm"
                             style={{
@@ -296,7 +310,12 @@ function RecentlyUploaded() {
 
             <h3 className="text-base font-bold font-display text-primary mb-1">{selectedDoc.title}</h3>
             {selectedDoc.category && (
-              <p className="text-xs text-muted-foreground mb-4">{selectedDoc.category}</p>
+              <p className="text-xs text-muted-foreground mb-2">{selectedDoc.category}</p>
+            )}
+            {selectedDoc.ai_analysis?.teaser && (
+              <p className="text-sm italic leading-snug mb-4 px-1" style={{ color: 'hsl(38 60% 78%)' }}>
+                "{selectedDoc.ai_analysis.teaser}"
+              </p>
             )}
 
             <div
