@@ -9,6 +9,85 @@ import { playStepSound } from "@/utils/stepSounds";
 import { AmbientSound } from "@/components/AmbientSound";
 import { EntryPaywall } from "@/components/EntryPaywall";
 
+const FEATURE_CARDS = [
+  {
+    icon: Shield,
+    title: "Immutable provenance",
+    desc: "Court-grade proof, timestamped on BSV",
+    synopsis: "The moment you upload something, Trove stamps it to the BSV blockchain — a public record that can never be altered, deleted, or faked. If someone ever asks \"is this genuine?\" — the blockchain answers for you. Permanently.",
+  },
+  {
+    icon: Zap,
+    title: "Instant micropayments",
+    desc: "Fractions of a penny per page, paid in real time",
+    synopsis: "Every time someone unlocks your upload — a historian, a documentary maker, a curious stranger — a small payment lands in your wallet automatically. No waiting, no invoices, no middleman. You upload once and earn forever.",
+  },
+  {
+    icon: FileText,
+    title: "Yours forever",
+    desc: "No middleman, no rug-pull, no expiry",
+    synopsis: "Your upload lives on the blockchain, not on Trove's servers. Even if Trove disappeared tomorrow, your document, your record, and your royalty rights would still exist. It's yours — and your family's — for as long as the internet exists.",
+  },
+];
+
+function FeatureCards() {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+
+  return (
+    <div className="grid md:grid-cols-3 gap-4">
+      {FEATURE_CARDS.map((item, idx) => {
+        const isOpen = openIdx === idx;
+        return (
+          <button
+            key={idx}
+            onClick={() => setOpenIdx(isOpen ? null : idx)}
+            className="parchment-card p-6 text-center hover-brass group text-left w-full transition-all duration-300 tap-target"
+            style={{
+              border: isOpen ? '1px solid hsl(42 88% 55% / 0.5)' : undefined,
+              boxShadow: isOpen ? '0 0 20px rgba(218,165,32,0.15)' : undefined,
+            }}
+          >
+            <item.icon
+              className="w-8 h-8 mx-auto mb-3 transition-transform duration-300"
+              style={{
+                color: 'hsl(42 95% 60%)',
+                transform: isOpen ? 'scale(1.15)' : undefined,
+              }}
+            />
+            <h3 className="text-base font-bold font-display mb-1 text-primary text-center">{item.title}</h3>
+            <p className="text-sm text-muted-foreground text-center">{item.desc}</p>
+
+            {/* Expandable synopsis */}
+            <div
+              className="overflow-hidden transition-all duration-300"
+              style={{ maxHeight: isOpen ? '200px' : '0px', opacity: isOpen ? 1 : 0 }}
+            >
+              <div
+                className="mt-4 pt-4 text-sm text-left leading-relaxed"
+                style={{
+                  borderTop: '1px solid hsl(42 88% 55% / 0.2)',
+                  color: 'hsl(30 20% 75%)',
+                }}
+              >
+                {item.synopsis}
+              </div>
+              <p className="text-xs mt-3 text-center" style={{ color: 'hsl(42 88% 55% / 0.6)' }}>
+                tap to close
+              </p>
+            </div>
+
+            {!isOpen && (
+              <p className="text-xs mt-2 text-center" style={{ color: 'hsl(42 88% 55% / 0.5)' }}>
+                tap to learn more
+              </p>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 const Landing = () => {
   const navigate = useNavigate();
   const { balanceBSV, hasPaidEntryFee } = useTroveStore();
@@ -210,19 +289,7 @@ const Landing = () => {
             <p className="text-sm text-muted-foreground mt-2">and growing</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              { icon: Shield, title: "Immutable provenance", desc: "Court-grade proof, timestamped on BSV" },
-              { icon: Zap, title: "Instant micropayments", desc: "Fractions of a penny per page, paid in real time" },
-              { icon: FileText, title: "Yours forever", desc: "No middleman, no rug-pull, no expiry" },
-            ].map((item, idx) => (
-              <div key={idx} className="parchment-card p-6 text-center hover-brass group">
-                <item.icon className="w-8 h-8 mx-auto mb-3 group-hover:scale-110 transition-transform" style={{ color: 'hsl(42 95% 60%)' }} />
-                <h3 className="text-base font-bold font-display mb-1 text-primary">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+          <FeatureCards />
         </div>
       </section>
 
