@@ -268,7 +268,7 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
             </span>
           </div>
           <p className="text-xs text-muted-foreground font-body">
-            {unlockPrice} sats • {bsvPrice.toFixed(8)} BSV
+            Permanently inscribed on BSV blockchain
           </p>
           {isLifetimeUser && (
             <p className="text-xs font-bold font-display mt-1" style={{ color: 'hsl(42 88% 55%)' }}>
