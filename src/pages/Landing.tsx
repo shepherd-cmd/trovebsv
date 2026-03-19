@@ -10,6 +10,7 @@ import { AmbientSound } from "@/components/AmbientSound";
 import { EntryPaywall } from "@/components/EntryPaywall";
 import { supabase } from "@/integrations/supabase/client";
 import { getBsvGbpPrice, satsToGbp } from "@/utils/bsvPrice";
+import { useHandCash } from "@/contexts/HandCashContext";
 
 // ── Recently Uploaded ─────────────────────────────────────────────────────────
 
@@ -20,29 +21,44 @@ interface RecentDoc {
   title: string;
   image_url: string;
   category: string;
+  owner_paymail: string;
   rarity_score: number;
   created_at: string;
 }
 
+const PLACEHOLDERS = [
+  { title: 'Waiting for first upload…',    category: 'Be the first archivist' },
+  { title: 'Your curiosity could be here', category: 'Upload something extraordinary' },
+  { title: 'History is waiting…',          category: 'Scan · Inscribe · Earn' },
+];
+
 function RecentlyUploaded() {
-  const navigate = useNavigate();
-  const [docs, setDocs]           = useState<RecentDoc[]>([]);
-  const [unlockGbp, setUnlockGbp] = useState<string>('...');
-  const [rotation]                = useState(() =>
-    Array.from({ length: 8 }, () => (Math.random() * 6 - 3).toFixed(1))
+  const [docs, setDocs]             = useState<RecentDoc[]>([]);
+  const [unlockGbp, setUnlockGbp]   = useState<string>('...');
+  const [bsvPrice, setBsvPrice]     = useState(0);
+  const [hoveredId, setHoveredId]   = useState<string | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<RecentDoc | null>(null);
+  const [paying, setPaying]         = useState(false);
+  const [rotation]                  = useState(() =>
+    Array.from({ length: 6 }, () => (Math.random() * 6 - 3).toFixed(1))
   );
+
+  const { isConnected, splitPayment, userPaymail } = useHandCash();
 
   useEffect(() => {
     supabase
       .from('documents')
-      .select('id, title, image_url, category, rarity_score, created_at')
+      .select('id, title, image_url, category, owner_paymail, rarity_score, created_at')
       .eq('delisted', false)
       .eq('status', 'inscribed')
       .order('created_at', { ascending: false })
       .limit(6)
-      .then(({ data }) => { if (data) setDocs(data); });
+      .then(({ data }) => { if (data) setDocs(data as RecentDoc[]); });
 
-    getBsvGbpPrice().then(price => setUnlockGbp(satsToGbp(UNLOCK_PRICE_SATS, price)));
+    getBsvGbpPrice().then(price => {
+      setBsvPrice(price);
+      setUnlockGbp(satsToGbp(UNLOCK_PRICE_SATS, price));
+    });
   }, []);
 
   function timeAgo(iso: string) {
@@ -52,126 +68,265 @@ function RecentlyUploaded() {
     return `${Math.floor(s / 86400)}d ago`;
   }
 
-  // Placeholder cards shown before any documents are uploaded
-  const PLACEHOLDERS = [
-    { title: 'Waiting for first upload…' },
-    { title: 'Your curiosity could be here' },
-    { title: 'Be the first archivist' },
-  ];
+  const handleUncover = async () => {
+    if (!selectedDoc) return;
+    if (!isConnected) {
+      // Not connected — open HandCash connect
+      setSelectedDoc(null);
+      return;
+    }
+    setPaying(true);
+    try {
+      const amountBsv = UNLOCK_PRICE_SATS / 1e8;
+      await splitPayment(amountBsv, selectedDoc.owner_paymail || '$trove-business', `Unlock: ${selectedDoc.title}`);
+      // Record the unlock in Supabase
+      await supabase.from('document_unlocks').insert({
+        document_id: selectedDoc.id,
+        owner_share: amountBsv * 0.80,
+        platform_share: amountBsv * 0.10,
+        gorilla_pool_share: amountBsv * 0.10,
+        amount_paid: amountBsv,
+      });
+      setSelectedDoc(null);
+    } catch {
+      // Payment failed — redirect to vault for full flow
+    } finally {
+      setPaying(false);
+    }
+  };
 
-  const displayDocs = docs.length > 0 ? docs : null;
+  const displayItems = docs.length > 0 ? docs : null;
 
   return (
-    <section className="pt-10 pb-4 px-0">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-2 px-1">
-          <h2 className="text-2xl font-bold font-display bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Recently Uploaded
-          </h2>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-muted-foreground font-body">Live</span>
+    <>
+      <section className="pt-10 pb-4 px-0">
+        <div className="max-w-3xl mx-auto">
+
+          {/* Header */}
+          <div className="flex items-center justify-between mb-1 px-1">
+            <h2 className="text-2xl font-bold font-display bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Recently Uploaded
+            </h2>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs text-muted-foreground font-body">Live</span>
+            </div>
           </div>
-        </div>
-        <p className="text-sm text-muted-foreground mb-6 px-1">
-          Fresh curiosities — unlock one and you might find something extraordinary
-        </p>
+          <p className="text-sm text-muted-foreground mb-6 px-1">
+            Fresh curiosities from the archive — hover to peek, click to uncover
+          </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-          {(displayDocs ?? PLACEHOLDERS).map((doc: any, i: number) => (
-            <button
-              key={doc.id ?? i}
-              onClick={() => doc.id ? navigate('/vault') : undefined}
-              className="group text-left tap-target focus:outline-none"
-              style={{ transform: `rotate(${rotation[i]}deg)`, cursor: doc.id ? 'pointer' : 'default' }}
-            >
-              {/* Polaroid frame */}
-              <div
-                className="p-3 pb-10 relative transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl"
-                style={{
-                  background: 'linear-gradient(145deg, #f5f0e8 0%, #ede8dc 100%)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.8)',
-                }}
-              >
-                {/* Blurred image */}
-                <div className="aspect-square overflow-hidden relative bg-stone-300">
-                  {doc.image_url ? (
-                    <img
-                      src={doc.image_url}
-                      alt={doc.title}
-                      className="w-full h-full object-cover"
-                      style={{ filter: 'blur(8px) brightness(0.55) sepia(0.3)', transform: 'scale(1.1)' }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-stone-700">
-                      <FileText className="h-8 w-8 text-stone-400" />
-                    </div>
-                  )}
-
-                  {/* Lock overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                    <div
-                      className="p-2 rounded-full"
-                      style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(218,165,32,0.4)' }}
-                    >
-                      <Lock className="h-5 w-5" style={{ color: 'hsl(42 88% 60%)' }} />
-                    </div>
-                    {doc.id && (
-                      <span
-                        className="text-sm font-bold font-display px-3 py-1 rounded-sm"
-                        style={{
-                          background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
-                          color: 'hsl(30 25% 10%)',
-                          boxShadow: '0 2px 8px rgba(139,90,0,0.5)',
-                        }}
-                      >
-                        Unlock {unlockGbp}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* New badge */}
-                  {(Date.now() - new Date(doc.created_at).getTime()) < 86400000 && (
-                    <div
-                      className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-sm font-display"
-                      style={{ background: 'hsl(42 88% 55%)', color: 'hsl(30 25% 10%)' }}
-                    >
-                      NEW
-                    </div>
-                  )}
-                </div>
-
-                {/* Polaroid caption */}
-                <div className="absolute bottom-0 left-0 right-0 px-3 py-2 text-center">
-                  <p
-                    className="text-xs font-medium truncate"
-                    style={{ color: 'hsl(25 30% 25%)', fontFamily: 'cursive' }}
+          {/* Polaroid grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+            {(displayItems ?? PLACEHOLDERS).map((doc: any, i: number) => {
+              const isReal    = !!doc.id;
+              const isHovered = hoveredId === (doc.id ?? `ph-${i}`);
+              return (
+                <div
+                  key={doc.id ?? `ph-${i}`}
+                  className="relative"
+                  style={{ transform: `rotate(${rotation[i]}deg)` }}
+                  onMouseEnter={() => isReal && setHoveredId(doc.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onClick={() => isReal && setSelectedDoc(doc)}
+                >
+                  {/* Polaroid frame */}
+                  <div
+                    className="p-2.5 pb-9 relative transition-all duration-300 cursor-pointer"
+                    style={{
+                      background: 'linear-gradient(145deg, #f5f0e8 0%, #ede8dc 100%)',
+                      boxShadow: isHovered
+                        ? '0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(218,165,32,0.2)'
+                        : '0 8px 24px rgba(0,0,0,0.4)',
+                      transform: isHovered ? 'translateY(-6px) scale(1.03)' : undefined,
+                    }}
                   >
-                    {doc.title || 'Unknown document'}
-                  </p>
-                  <div className="flex items-center justify-center gap-1 mt-0.5">
-                    <Clock className="h-2.5 w-2.5" style={{ color: 'hsl(25 20% 50%)' }} />
-                    <span className="text-xs" style={{ color: 'hsl(25 20% 50%)' }}>
-                      {timeAgo(doc.created_at)}
-                    </span>
+                    {/* Image area */}
+                    <div className="aspect-square overflow-hidden relative bg-stone-700">
+                      {doc.image_url ? (
+                        <img
+                          src={doc.image_url}
+                          alt={doc.title}
+                          className="w-full h-full object-cover transition-all duration-500"
+                          style={{
+                            filter: 'blur(10px) brightness(0.45) sepia(0.4)',
+                            transform: 'scale(1.12)',
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-stone-800">
+                          <FileText className="h-8 w-8 text-stone-500" />
+                        </div>
+                      )}
+
+                      {/* Default overlay — lock icon */}
+                      {!isHovered && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div
+                            className="p-2.5 rounded-full"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(218,165,32,0.35)' }}
+                          >
+                            <Lock className="h-5 w-5" style={{ color: 'hsl(42 88% 60%)' }} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hover overlay — synopsis + uncover prompt */}
+                      {isHovered && isReal && (
+                        <div
+                          className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center"
+                          style={{ background: 'rgba(0,0,0,0.72)' }}
+                        >
+                          <p className="text-xs font-semibold leading-snug" style={{ color: 'hsl(42 88% 80%)' }}>
+                            {doc.title}
+                          </p>
+                          {doc.category && (
+                            <p className="text-xs" style={{ color: 'hsl(30 20% 65%)' }}>{doc.category}</p>
+                          )}
+                          <div
+                            className="mt-1 px-3 py-1 text-xs font-bold font-display rounded-sm"
+                            style={{
+                              background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+                              color: 'hsl(30 25% 10%)',
+                              boxShadow: '0 2px 8px rgba(139,90,0,0.5)',
+                            }}
+                          >
+                            Uncover {unlockGbp}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* NEW badge */}
+                      {isReal && (Date.now() - new Date(doc.created_at).getTime()) < 86400000 && (
+                        <div
+                          className="absolute top-1.5 left-1.5 text-xs font-bold px-1.5 py-0.5 rounded-sm font-display"
+                          style={{ background: 'hsl(42 88% 55%)', color: 'hsl(30 25% 10%)' }}
+                        >
+                          NEW
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Caption strip */}
+                    <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5 text-center">
+                      <p
+                        className="text-xs truncate"
+                        style={{ color: 'hsl(25 30% 30%)', fontFamily: 'cursive' }}
+                      >
+                        {isReal ? (doc.title || 'Unknown') : doc.title}
+                      </p>
+                      {isReal && (
+                        <p className="text-xs" style={{ color: 'hsl(25 20% 55%)' }}>
+                          {timeAgo(doc.created_at)}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {docs.length > 0 && (
+            <div className="text-center mt-8">
+              <Link
+                to="/vault"
+                className="text-sm font-semibold font-display"
+                style={{ color: 'hsl(42 88% 55%)' }}
+              >
+                Browse the full archive →
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Uncover modal */}
+      {selectedDoc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
+          onClick={() => !paying && setSelectedDoc(null)}
+        >
+          <div
+            className="parchment-card p-6 max-w-xs w-full text-center"
+            style={{
+              border: '1px solid hsl(42 88% 55% / 0.4)',
+              boxShadow: '0 0 40px rgba(218,165,32,0.2)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Blurred preview */}
+            {selectedDoc.image_url && (
+              <div className="w-full aspect-video overflow-hidden mb-4 rounded-sm relative">
+                <img
+                  src={selectedDoc.image_url}
+                  className="w-full h-full object-cover"
+                  style={{ filter: 'blur(12px) brightness(0.4)', transform: 'scale(1.1)' }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Lock className="h-8 w-8" style={{ color: 'hsl(42 88% 60%)' }} />
                 </div>
               </div>
-            </button>
-          ))}
-        </div>
+            )}
 
-        <div className="text-center mt-8">
-          <Link
-            to="/vault"
-            className="inline-flex items-center gap-2 text-sm font-semibold font-display"
-            style={{ color: 'hsl(42 88% 55%)' }}
-          >
-            Browse the full archive →
-          </Link>
+            <h3 className="text-base font-bold font-display text-primary mb-1">{selectedDoc.title}</h3>
+            {selectedDoc.category && (
+              <p className="text-xs text-muted-foreground mb-4">{selectedDoc.category}</p>
+            )}
+
+            <div
+              className="py-3 mb-4 rounded-sm"
+              style={{ background: 'rgba(218,165,32,0.08)', border: '1px solid rgba(218,165,32,0.2)' }}
+            >
+              <p className="text-2xl font-bold font-display" style={{ color: 'hsl(42 88% 60%)' }}>
+                {unlockGbp}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {UNLOCK_PRICE_SATS} sats · paid from your HandCash wallet
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'hsl(42 88% 55%)' }}>
+                80% goes directly to the uploader
+              </p>
+            </div>
+
+            {isConnected ? (
+              <button
+                onClick={handleUncover}
+                disabled={paying}
+                className="w-full py-3 text-sm font-bold font-display rounded-sm transition-opacity disabled:opacity-50"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+                  color: 'hsl(30 25% 10%)',
+                  boxShadow: '0 4px 12px rgba(139,90,0,0.4)',
+                }}
+              >
+                {paying ? 'Processing…' : `Uncover for ${unlockGbp}`}
+              </button>
+            ) : (
+              <Link
+                to="/vault"
+                onClick={() => setSelectedDoc(null)}
+                className="block w-full py-3 text-sm font-bold font-display rounded-sm text-center"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+                  color: 'hsl(30 25% 10%)',
+                }}
+              >
+                Connect wallet to uncover
+              </Link>
+            )}
+
+            <button
+              onClick={() => setSelectedDoc(null)}
+              className="mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
+      )}
+    </>
   );
 }
 
