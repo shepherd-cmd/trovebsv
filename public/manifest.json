@@ -1,0 +1,43 @@
+{
+  "name": "Trove — Preserve History, Earn Forever",
+  "short_name": "Trove",
+  "description": "Scan rare documents, inscribe them on BSV blockchain, earn royalties every time historians or AI companies access them.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0805",
+  "theme_color": "#c8922a",
+  "lang": "en-GB",
+  "categories": ["utilities", "finance", "photography"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Scan a Document",
+      "short_name": "Scan",
+      "description": "Open the camera to scan and inscribe a new document",
+      "url": "/scan",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "The Vault",
+      "short_name": "Vault",
+      "description": "Browse the archive of inscribed curiosities",
+      "url": "/vault",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}

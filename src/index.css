@@ -8,10 +8,56 @@
   All colors in HSL.
 */
 
+/* ─────────────────────────────────────────────
+   Mobile globals — applied before everything else
+   ───────────────────────────────────────────── */
+
+/* Remove blue flash on tap (iOS + Android) */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* Prevent double-tap zoom on buttons/links */
+  touch-action: manipulation;
+  /* Stop iOS from bumping font sizes in landscape */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  /* Prevent pull-to-refresh and bounce overscroll */
+  overscroll-behavior: none;
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Safe area background matches app shell */
+  background-color: hsl(20 15% 5%);
+}
+
+/* Full-height fix: iOS Safari toolbar shrinks vh,
+   use svh (small viewport height) where supported */
+.h-screen-mobile {
+  height: 100vh;
+  height: 100svh;
+}
+
+/* Minimum 44×44 px tap target helper */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─────────────────────────────────────────────
+   End mobile globals
+   ───────────────────────────────────────────── */
+
 @layer base {
   :root {
-    /* Deep dark canvas */
-    --background: 222 18% 6%;
+    /* Deep dark canvas — warm brown to complement the library image */
+    --background: 20 15% 5%;
     --foreground: 40 20% 92%;
     --card: 222 16% 9%;
     --card-foreground: 40 15% 90%;

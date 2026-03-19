@@ -9,10 +9,10 @@ const corsHeaders = {
 const TREASURY_PAYMAIL = '$trove-business';
 const GORILLA_POOL_PAYMAIL = '$gorilla-pool'; // TODO: replace with actual Gorilla Pool paymail
 
-// Fee split: 65% owner / 20% platform / 15% Gorilla Pool
-const OWNER_SHARE = 0.65;
-const PLATFORM_SHARE = 0.20;
-const GORILLA_POOL_SHARE = 0.15;
+// Fee split: 80% owner / 10% platform / 10% Gorilla Pool
+const OWNER_SHARE = 0.80;
+const PLATFORM_SHARE = 0.10;
+const GORILLA_POOL_SHARE = 0.10;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -26,9 +26,9 @@ serve(async (req) => {
 
     // TODO: Implement HandCash payment splitting via HandCash SDK
     // When implemented, send three separate payments:
-    //   1. ownerPaymail       ← amount * 0.65
-    //   2. TREASURY_PAYMAIL   ← amount * 0.20
-    //   3. GORILLA_POOL_PAYMAIL ← amount * 0.15
+    //   1. ownerPaymail       ← amount * 0.80
+    //   2. TREASURY_PAYMAIL   ← amount * 0.10
+    //   3. GORILLA_POOL_PAYMAIL ← amount * 0.10
 
     const ownerShare = Math.floor(amount * OWNER_SHARE);
     const platformShare = Math.floor(amount * PLATFORM_SHARE);

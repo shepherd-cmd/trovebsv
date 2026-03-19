@@ -7,9 +7,9 @@ export const TREASURY_PAYMAIL = '$trove-business';
 export const GORILLA_POOL_PAYMAIL = '$gorilla-pool';
 
 // Fee split constants (percentages as decimals)
-export const OWNER_SHARE = 0.65;      // 65% to document owner
-export const PLATFORM_SHARE = 0.20;   // 20% to Trove business treasury
-export const GORILLA_POOL_SHARE = 0.15; // 15% to Gorilla Pool for indexing
+export const OWNER_SHARE = 0.80;      // 80% to document owner — their history, their reward
+export const PLATFORM_SHARE = 0.10;   // 10% to Trove business treasury
+export const GORILLA_POOL_SHARE = 0.10; // 10% to Gorilla Pool for indexing
 
 // Entry fee in GBP
 export const ENTRY_FEE_GBP = 3.99;
@@ -25,7 +25,7 @@ export const ENTRY_CREDITS = 5;
  * to protect app secrets and ensure secure payment processing.
  *
  * Available Edge Functions:
- * - process-payment: Handle document unlock payments with 65/20/15 splits
+ * - process-payment: Handle document unlock payments with 80/10/10 splits
  * - sponsor-inscription: Credit-based inscriptions from treasury
  * - get-treasury-balance: Fetch current treasury balance
  * - purchase-credits: Handle £3.99 entry fee and credit top-ups

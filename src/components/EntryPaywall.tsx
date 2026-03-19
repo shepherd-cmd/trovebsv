@@ -92,7 +92,7 @@ export const EntryPaywall = ({ onComplete }: EntryPaywallProps) => {
           <div className="flex items-start gap-3">
             <Coins className="h-5 w-5 mt-0.5 shrink-0" style={{ color: 'hsl(42 88% 55%)' }} />
             <p className="text-sm font-body text-card-foreground">
-              <span className="font-bold">Earn perpetual royalties</span> — 65% of every unlock goes to you, forever
+              <span className="font-bold">Earn perpetual royalties</span> — 80% of every unlock goes to you, forever
             </p>
           </div>
           <div className="flex items-start gap-3">

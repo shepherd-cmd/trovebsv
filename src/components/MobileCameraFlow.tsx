@@ -37,6 +37,7 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
   const [showDeclaration, setShowDeclaration] = useState(false);
   const [pendingInscription, setPendingInscription] = useState<{ title: string; royaltyPercent: number } | null>(null);
+  const [cameraError, setCameraError] = useState<'denied' | 'unavailable' | null>(null);
   const [declarations, setDeclarations] = useState({
     ownsRights: false,
     noPersonalData: false,
@@ -59,23 +60,32 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
 
   const startCamera = async () => {
     try {
+      // Check API availability first (older browsers / non-HTTPS)
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraError('unavailable');
+        return;
+      }
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false
       });
+      setCameraError(null);
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
-      // Notify success once camera is ready
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
+      if (onSuccess) onSuccess();
+    } catch (error: unknown) {
       console.error("Camera access error:", error);
-      if (onError) {
-        onError();
+      // NotAllowedError = user denied permission
+      // NotFoundError   = no camera hardware
+      const name = (error as { name?: string })?.name ?? '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setCameraError('denied');
+      } else {
+        setCameraError('unavailable');
       }
+      if (onError) onError();
     }
   };
 
@@ -447,16 +457,57 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
           </div>
         </div>
       )}
-      {/* Close button */}
+      {/* Camera permission / availability error screen */}
+      {cameraError && (
+        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-8 text-center"
+          style={{ background: 'rgba(10,8,5,0.96)' }}>
+          <div className="text-5xl mb-4">📷</div>
+          <h2 className="text-2xl font-display font-bold mb-3 brass-glow">
+            {cameraError === 'denied' ? 'Camera Access Denied' : 'Camera Unavailable'}
+          </h2>
+          <p className="text-muted-foreground mb-6 leading-relaxed">
+            {cameraError === 'denied'
+              ? 'Trove needs camera access to scan documents. Please allow camera access in your device settings, then try again.'
+              : 'No camera was found on this device, or your browser does not support camera access. Try opening Trove in Safari on your iPhone or Chrome on Android.'}
+          </p>
+          {cameraError === 'denied' && (
+            <p className="text-xs text-muted-foreground mb-6">
+              On iPhone: Settings → Safari → Camera → Allow
+            </p>
+          )}
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <button
+              onClick={startCamera}
+              className="w-full py-4 rounded-xl font-display font-bold text-sm tap-target"
+              style={{
+                background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+                color: 'hsl(30 25% 10%)',
+              }}
+            >
+              Try Again
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-4 rounded-xl font-display text-sm tap-target"
+              style={{ border: '1px solid hsl(222 14% 22%)', color: 'hsl(40 20% 70%)' }}
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Close button — minimum 44×44px tap target */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-sm"
-        style={{ 
+        className="absolute right-4 z-50 flex items-center justify-center w-11 h-11 rounded-full bg-background/80 backdrop-blur-sm"
+        style={{
           top: 'calc(1rem + env(safe-area-inset-top))',
           color: 'hsl(38 60% 45%)'
         }}
+        aria-label="Close camera"
       >
-        <X className="w-6 h-6" />
+        <X className="w-5 h-5" />
       </button>
 
       {!capturedImage ? (

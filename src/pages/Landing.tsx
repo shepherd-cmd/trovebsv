@@ -29,7 +29,7 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
+    <div className="min-h-screen text-foreground overflow-x-hidden relative" style={{ background: 'transparent' }}>
       {showEntryPaywall && (
         <EntryPaywall onComplete={() => { setShowEntryPaywall(false); navigate("/scan"); }} />
       )}
@@ -116,7 +116,7 @@ const Landing = () => {
             {[
               { label: 'Indexed by', value: 'Gorilla Pool' },
               { label: 'Blockchain', value: 'BSV' },
-              { label: 'Your cut', value: '65%' },
+              { label: 'Yours forever', value: '80%' },
             ].map(({ label, value }) => (
               <div key={label} className="text-center">
                 <p className="text-xs text-muted-foreground">{label}</p>
@@ -239,7 +239,7 @@ const Landing = () => {
               <input
                 type="text"
                 placeholder="Search the archive…"
-                className="w-full rounded-lg py-3 pl-10 pr-4 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                className="w-full rounded-lg py-3 pl-10 pr-4 text-base text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 style={{ background: 'hsl(222 16% 7%)', border: '1px solid hsl(222 14% 20%)' }}
                 readOnly
               />

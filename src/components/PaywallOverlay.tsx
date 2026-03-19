@@ -85,10 +85,10 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
         `Unlock: ${document.title}`
       );
 
-      // Calculate shares for database record (65/20/15 split)
-      const ownerShare = bsvPrice * 0.65;
-      const platformShare = bsvPrice * 0.20;
-      // gorillaPoolShare = bsvPrice * 0.15 (paid via process-payment edge function)
+      // Calculate shares for database record (80/10/10 split)
+      const ownerShare = bsvPrice * 0.80;
+      const platformShare = bsvPrice * 0.10;
+      // gorillaPoolShare = bsvPrice * 0.10 (paid via process-payment edge function)
 
       // Create unlock record
       const { error: unlockError } = await supabase
@@ -276,7 +276,7 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
             </p>
           )}
           <p className="text-xs text-muted-foreground font-body mt-2">
-            65% to creator · 20% to Trove · 15% to Gorilla Pool
+            80% to creator · 10% to Trove · 10% to Gorilla Pool
           </p>
         </div>
 
