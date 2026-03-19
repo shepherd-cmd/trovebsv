@@ -5,6 +5,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Business wallet - TODO: replace with actual HandCash business wallet paymail once created
+const TREASURY_PAYMAIL = '$trove-business';
+const GORILLA_POOL_PAYMAIL = '$gorilla-pool'; // TODO: replace with actual Gorilla Pool paymail
+
+// Fee split: 65% owner / 20% platform / 15% Gorilla Pool
+const OWNER_SHARE = 0.65;
+const PLATFORM_SHARE = 0.20;
+const GORILLA_POOL_SHARE = 0.15;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -12,21 +21,31 @@ serve(async (req) => {
 
   try {
     const { amount, ownerPaymail, description, payerPaymail } = await req.json();
-    
+
     console.log('Processing payment:', { amount, ownerPaymail, payerPaymail, description });
 
-    // TODO: Implement HandCash payment splitting
-    // 80% to owner, 20% to treasury
-    const ownerShare = amount * 0.8;
-    const treasuryShare = amount * 0.2;
+    // TODO: Implement HandCash payment splitting via HandCash SDK
+    // When implemented, send three separate payments:
+    //   1. ownerPaymail       ← amount * 0.65
+    //   2. TREASURY_PAYMAIL   ← amount * 0.20
+    //   3. GORILLA_POOL_PAYMAIL ← amount * 0.15
 
-    // For now, simulate successful payment
+    const ownerShare = Math.floor(amount * OWNER_SHARE);
+    const platformShare = Math.floor(amount * PLATFORM_SHARE);
+    const gorillaPoolShare = amount - ownerShare - platformShare; // remainder avoids rounding loss
+
+    console.log('Payment split:', { ownerShare, platformShare, gorillaPoolShare });
+
+    // Simulate payment delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       success: true,
       ownerShare,
-      treasuryShare,
+      platformShare,
+      gorillaPoolShare,
+      treasuryPaymail: TREASURY_PAYMAIL,
+      gorillaPoolPaymail: GORILLA_POOL_PAYMAIL,
       txid: `mock-tx-${Date.now()}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -35,10 +54,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in process-payment:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error instanceof Error ? error.message : 'Payment failed',
         success: false
-      }), 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

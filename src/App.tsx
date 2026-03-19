@@ -10,6 +10,7 @@ import Scan from "./pages/scan";
 import Vault from "./pages/TheVault";
 import MyVault from "./pages/MyVault";
 import Treasury from "./pages/Treasury";
+import Legal from "./pages/Legal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ function AppContent() {
         <Route path="/vault" element={<Vault />} />
         <Route path="/my-vault" element={<MyVault />} />
         <Route path="/treasury" element={<Treasury />} />
+        <Route path="/legal" element={<Legal />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

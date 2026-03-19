@@ -16,11 +16,11 @@ export default {
       fontFamily: {
         'display': ['Playfair Display', 'Georgia', 'serif'],
         'title': ['Cinzel', 'Georgia', 'serif'],
-        'body': ['Crimson Text', 'Georgia', 'serif'],
-        'sans': ['Crimson Text', 'Georgia', 'serif'],
+        'body': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
         'serif': ['Playfair Display', 'Georgia', 'serif'],
-        'handwriting': ['Caveat', 'Dancing Script', 'cursive'],
-        'script': ['Dancing Script', 'Caveat', 'cursive'],
+        'handwriting': ['Caveat', 'cursive'],
+        'script': ['Caveat', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",

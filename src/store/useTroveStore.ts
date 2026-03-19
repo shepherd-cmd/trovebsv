@@ -7,13 +7,15 @@ interface UserSlice {
   session: Session | null;
   paymail: string | null;
   isLifetime: boolean;
-  freeInscriptionsLeft: number;
+  inscriptionCredits: number;
+  hasPaidEntryFee: boolean;
   badge: string | null;
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
   setPaymail: (paymail: string | null) => void;
   setIsLifetime: (isLifetime: boolean) => void;
-  setFreeInscriptionsLeft: (count: number) => void;
+  setInscriptionCredits: (count: number) => void;
+  setHasPaidEntryFee: (paid: boolean) => void;
   setBadge: (badge: string | null) => void;
   clearUser: () => void;
 }
@@ -61,21 +63,24 @@ export const useTroveStore = create<TroveStore>()(
       session: null,
       paymail: null,
       isLifetime: false,
-      freeInscriptionsLeft: 0,
+      inscriptionCredits: 0,
+      hasPaidEntryFee: false,
       badge: null,
       setUser: (user) => set({ user }),
       setSession: (session) => set({ session }),
       setPaymail: (paymail) => set({ paymail }),
       setIsLifetime: (isLifetime) => set({ isLifetime }),
-      setFreeInscriptionsLeft: (count) => set({ freeInscriptionsLeft: count }),
+      setInscriptionCredits: (count) => set({ inscriptionCredits: count }),
+      setHasPaidEntryFee: (paid) => set({ hasPaidEntryFee: paid }),
       setBadge: (badge) => set({ badge }),
-      clearUser: () => set({ 
-        user: null, 
-        session: null, 
-        paymail: null, 
-        isLifetime: false, 
-        freeInscriptionsLeft: 0,
-        badge: null 
+      clearUser: () => set({
+        user: null,
+        session: null,
+        paymail: null,
+        isLifetime: false,
+        inscriptionCredits: 0,
+        hasPaidEntryFee: false,
+        badge: null
       }),
 
       balanceBSV: 0,
@@ -130,7 +135,8 @@ export const useTroveStore = create<TroveStore>()(
       partialize: (state) => ({
         paymail: state.paymail,
         isLifetime: state.isLifetime,
-        freeInscriptionsLeft: state.freeInscriptionsLeft,
+        inscriptionCredits: state.inscriptionCredits,
+        hasPaidEntryFee: state.hasPaidEntryFee,
         badge: state.badge,
         ambientSoundMuted: state.ambientSoundMuted,
         lastScore: state.lastScore,

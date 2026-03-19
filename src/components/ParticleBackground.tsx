@@ -1,120 +1,73 @@
-import { useEffect, useRef } from 'react';
+// Modern Web3 background — gradient orbs + subtle grid mesh
 
 export default function ParticleBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles: Array<{
-      x: number;
-      y: number;
-      size: number;
-      speedX: number;
-      speedY: number;
-      opacity: number;
-    }> = [];
-
-    // Create very subtle warm dust mote particles
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.3,
-        speedX: (Math.random() - 0.5) * 0.15, // Slower, more subtle
-        speedY: Math.random() * 0.15 - 0.25, // Gentle upward drift
-        opacity: Math.random() * 0.25 + 0.05, // More subtle opacity
-      });
-    }
-
-    function animate() {
-      if (!ctx || !canvas) return;
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach((particle) => {
-        // Update position with gentle floating motion
-        particle.x += particle.speedX;
-        particle.y += particle.speedY;
-
-        // Wrap around screen
-        if (particle.x < 0) particle.x = canvas.width;
-        if (particle.x > canvas.width) particle.x = 0;
-        if (particle.y < 0) particle.y = canvas.height;
-        if (particle.y > canvas.height) particle.y = 0;
-
-        // Draw warm dust mote with amber/gold glow
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        
-        // Create warm golden gradient for god-ray effect
-        const gradient = ctx.createRadialGradient(
-          particle.x, particle.y, 0,
-          particle.x, particle.y, particle.size * 10
-        );
-        gradient.addColorStop(0, `rgba(218, 165, 32, ${particle.opacity * 0.8})`); // Gold
-        gradient.addColorStop(0.5, `rgba(184, 134, 11, ${particle.opacity * 0.4})`); // Darker gold
-        gradient.addColorStop(1, 'rgba(139, 90, 0, 0)'); // Fade to transparent
-        
-        ctx.fillStyle = gradient;
-        ctx.fill();
-        
-        // Draw bright center with sepia/amber tone
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size * 0.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 215, 100, ${particle.opacity * 1.2})`;
-        ctx.fill();
-      });
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
-    <>
-      {/* Main canvas with dust motes */}
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{ 
-          background: 'radial-gradient(ellipse at 50% 20%, hsl(35 25% 12%), hsl(28 25% 8%))',
-        }}
-      />
-      
-      {/* Parchment texture overlay */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-[1] opacity-[0.03]"
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      {/* Gold orb — top left */}
+      <div
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' /%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' /%3E%3C/svg%3E")`,
-          backgroundRepeat: 'repeat',
+          position: 'absolute',
+          width: '55vw',
+          height: '55vw',
+          top: '-18vw',
+          left: '-12vw',
+          background: 'radial-gradient(circle, hsl(42 95% 60% / 0.08) 0%, transparent 68%)',
+          filter: 'blur(40px)',
+          animation: 'orb-float-1 22s ease-in-out infinite',
         }}
       />
-      
-      {/* Soft vignette around edges */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-[2]"
+
+      {/* Teal orb — bottom right */}
+      <div
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(20, 15, 10, 0.3) 70%, rgba(20, 15, 10, 0.6) 100%)',
-          boxShadow: 'inset 0 0 200px rgba(20, 15, 10, 0.4)',
+          position: 'absolute',
+          width: '45vw',
+          height: '45vw',
+          bottom: '-14vw',
+          right: '-8vw',
+          background: 'radial-gradient(circle, hsl(195 75% 52% / 0.06) 0%, transparent 70%)',
+          filter: 'blur(50px)',
+          animation: 'orb-float-2 28s ease-in-out infinite',
         }}
       />
-    </>
+
+      {/* Gold orb — centre, very faint */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '28vw',
+          height: '28vw',
+          top: '38%',
+          right: '8%',
+          background: 'radial-gradient(circle, hsl(42 95% 60% / 0.04) 0%, transparent 65%)',
+          filter: 'blur(60px)',
+          animation: 'orb-float-1 19s ease-in-out infinite reverse',
+        }}
+      />
+
+      {/* Subtle grid mesh */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `
+            linear-gradient(hsl(222 15% 22% / 0.2) 1px, transparent 1px),
+            linear-gradient(90deg, hsl(222 15% 22% / 0.2) 1px, transparent 1px)
+          `,
+          backgroundSize: '64px 64px',
+          maskImage: 'radial-gradient(ellipse 85% 80% at 50% 50%, black 15%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 85% 80% at 50% 50%, black 15%, transparent 100%)',
+        }}
+      />
+
+      {/* Edge vignette */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, hsl(222 18% 5% / 0.65) 100%)',
+        }}
+      />
+    </div>
   );
 }

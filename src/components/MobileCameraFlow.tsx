@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useTroveStore } from "@/store/useTroveStore";
@@ -34,6 +35,14 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
   const [provenanceScore, setProvenanceScore] = useState<number | null>(null);
   const [provenanceDescription, setProvenanceDescription] = useState<string>("");
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
+  const [showDeclaration, setShowDeclaration] = useState(false);
+  const [pendingInscription, setPendingInscription] = useState<{ title: string; royaltyPercent: number } | null>(null);
+  const [declarations, setDeclarations] = useState({
+    ownsRights: false,
+    noPersonalData: false,
+    understoodPermanence: false,
+    acceptsResponsibility: false,
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filterCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -203,10 +212,25 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
     setShowOriginal(!showOriginal);
   };
 
+  // Called by InscriptionBottomSheet — shows declaration gate before proceeding
+  const requestInscription = (title: string, royaltyPercent: number) => {
+    setShowBottomSheet(false);
+    setDeclarations({ ownsRights: false, noPersonalData: false, understoodPermanence: false, acceptsResponsibility: false });
+    setPendingInscription({ title, royaltyPercent });
+    setShowDeclaration(true);
+  };
+
+  const allDeclared = Object.values(declarations).every(Boolean);
+
+  const confirmInscription = () => {
+    if (!allDeclared || !pendingInscription) return;
+    setShowDeclaration(false);
+    inscribeDocument(pendingInscription.title, pendingInscription.royaltyPercent);
+  };
+
   const inscribeDocument = async (title: string, royaltyPercent: number) => {
     if (!capturedImage) return;
-    
-    setShowBottomSheet(false);
+
     setIsInscribing(true);
     setDocumentTitle(title);
     
@@ -356,8 +380,72 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
       {showBottomSheet && (
         <InscriptionBottomSheet
           onClose={() => setShowBottomSheet(false)}
-          onInscribe={inscribeDocument}
+          onInscribe={requestInscription}
         />
+      )}
+
+      {/* Declaration gate — shown before every inscription */}
+      {showDeclaration && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          style={{ background: 'rgba(20, 15, 10, 0.92)' }}
+        >
+          <div className="relative max-w-md w-full parchment-card p-7 shadow-glow-strong animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-5">
+              <AlertTriangle className="h-6 w-6 shrink-0" style={{ color: 'hsl(38 60% 45%)' }} />
+              <h3 className="text-xl font-display font-bold text-primary">Before You Inscribe</h3>
+            </div>
+            <p className="text-sm font-body text-muted-foreground mb-5">
+              Inscriptions are <span className="font-bold text-card-foreground">permanent and cannot be deleted</span> from the BSV blockchain. Please confirm the following:
+            </p>
+
+            <div className="space-y-4 mb-6">
+              {[
+                { key: 'ownsRights', label: 'I own this material, or it is in the public domain, and I have the right to upload it.' },
+                { key: 'noPersonalData', label: 'This document does not contain personal data of living individuals without their consent.' },
+                { key: 'understoodPermanence', label: 'I understand this inscription is permanent and cannot be removed from the blockchain.' },
+                { key: 'acceptsResponsibility', label: 'I accept full legal responsibility for the content I am uploading.' },
+              ].map(({ key, label }) => (
+                <div key={key} className="flex items-start gap-3">
+                  <Checkbox
+                    id={key}
+                    checked={declarations[key as keyof typeof declarations]}
+                    onCheckedChange={(checked) =>
+                      setDeclarations(prev => ({ ...prev, [key]: !!checked }))
+                    }
+                    className="mt-0.5"
+                  />
+                  <label htmlFor={key} className="text-sm font-body text-card-foreground cursor-pointer leading-snug">
+                    {label}
+                  </label>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => { setShowDeclaration(false); setPendingInscription(null); }}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!allDeclared}
+                onClick={confirmInscription}
+                className="flex-1 font-display font-bold"
+                style={{
+                  background: allDeclared
+                    ? 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)'
+                    : undefined,
+                  boxShadow: allDeclared ? '0 4px 12px rgba(139, 90, 0, 0.4)' : undefined,
+                }}
+              >
+                Confirm & Inscribe
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
       {/* Close button */}
       <button
