@@ -2,123 +2,222 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/*
+  Design system — Web3 dark premium aesthetic
+  Warm gold brand identity on deep dark canvas.
+  All colors in HSL.
 */
+
+/* ─────────────────────────────────────────────
+   Mobile globals — applied before everything else
+   ───────────────────────────────────────────── */
+
+/* Remove blue flash on tap (iOS + Android) */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* Prevent double-tap zoom on buttons/links */
+  touch-action: manipulation;
+  /* Stop iOS from bumping font sizes in landscape */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  /* Prevent pull-to-refresh and bounce overscroll */
+  overscroll-behavior: none;
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Safe area background matches app shell */
+  background-color: hsl(20 15% 5%);
+}
+
+/* Full-height fix: iOS Safari toolbar shrinks vh,
+   use svh (small viewport height) where supported */
+.h-screen-mobile {
+  height: 100vh;
+  height: 100svh;
+}
+
+/* Minimum 44×44 px tap target helper */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─────────────────────────────────────────────
+   End mobile globals
+   ───────────────────────────────────────────── */
 
 @layer base {
   :root {
-    /* 1920s Luxurious Hidden-Object Adventure Game Palette */
-    --background: 28 25% 8%;        /* Deep mahogany brown */
-    --foreground: 40 65% 92%;       /* Aged parchment beige */
-    --card: 30 20% 12%;             /* Dark wood panel */
-    --card-foreground: 40 65% 92%;
-    --popover: 30 22% 15%;
-    --popover-foreground: 40 65% 92%;
-    
-    --primary: 42 88% 55%;          /* Rich amber/gold */
-    --primary-light: 45 95% 65%;    /* Lighter gold highlight */
-    --primary-foreground: 30 25% 10%;
-    
-    --secondary: 35 45% 35%;        /* Warm brass */
-    --secondary-foreground: 40 65% 92%;
-    
-    --muted: 32 18% 22%;            /* Muted brown */
-    --muted-foreground: 38 35% 65%;
-    
-    --accent: 38 75% 50%;           /* Sepia accent */
-    --accent-foreground: 40 65% 92%;
-    
-    --destructive: 0 75% 45%;
-    --destructive-foreground: 40 65% 92%;
-    
-    --border: 38 45% 35%;           /* Brass border */
-    --input: 30 20% 15%;
-    --ring: 42 88% 55%;
-    --radius: 0.75rem;
-    
-    /* Vintage Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(42 88% 55%), hsl(45 95% 65%));
-    --gradient-card: linear-gradient(180deg, hsl(30 20% 12% / 0.9), hsl(28 25% 8% / 0.95));
-    --gradient-leather: linear-gradient(145deg, hsl(35 25% 18%), hsl(30 20% 12%));
-    
-    /* Warm Glow Effects */
-    --shadow-glow: 0 8px 32px hsl(42 88% 45% / 0.35);
-    --shadow-glow-strong: 0 12px 48px hsl(42 88% 50% / 0.5);
-    --shadow-inset: inset 0 2px 8px hsl(28 25% 5% / 0.6);
-    
-    /* Parchment & Brass */
-    --parchment-bg: hsl(42 45% 88% / 0.95);
-    --parchment-border: hsl(38 35% 65%);
-    --brass-bg: hsl(38 60% 45%);
-    --brass-border: hsl(35 55% 38%);
+    /* Deep dark canvas — warm brown to complement the library image */
+    --background: 20 15% 5%;
+    --foreground: 40 20% 92%;
+    --card: 222 16% 9%;
+    --card-foreground: 40 15% 90%;
+    --popover: 222 16% 11%;
+    --popover-foreground: 40 15% 90%;
+
+    /* Gold — vivid, electric */
+    --primary: 42 95% 60%;
+    --primary-light: 45 100% 70%;
+    --primary-foreground: 222 18% 6%;
+
+    /* Teal — Web3 accent */
+    --secondary: 195 75% 52%;
+    --secondary-foreground: 222 18% 6%;
+
+    /* Muted */
+    --muted: 222 14% 14%;
+    --muted-foreground: 222 10% 55%;
+
+    /* Amber accent */
+    --accent: 38 80% 55%;
+    --accent-foreground: 222 18% 6%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 40 20% 92%;
+
+    --border: 222 14% 18%;
+    --input: 222 16% 11%;
+    --ring: 42 95% 60%;
+    --radius: 0.625rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(42 95% 60%), hsl(45 100% 70%));
+    --gradient-card: linear-gradient(180deg, hsl(222 16% 9% / 0.95), hsl(222 18% 6% / 0.98));
+    --gradient-leather: linear-gradient(145deg, hsl(222 16% 11%), hsl(222 18% 8%));
+
+    /* Glow effects — clean and electric */
+    --shadow-glow: 0 4px 24px hsl(42 95% 55% / 0.22);
+    --shadow-glow-strong: 0 8px 40px hsl(42 95% 60% / 0.35);
+    --shadow-inset: inset 0 1px 6px hsl(222 18% 4% / 0.5);
+
+    /* Legacy aliases — kept for compatibility */
+    --parchment-bg: hsl(222 16% 10% / 0.95);
+    --parchment-border: hsl(222 14% 20%);
+    --brass-bg: hsl(42 95% 60%);
+    --brass-border: hsl(38 70% 45%);
   }
 }
 
 @layer utilities {
-  /* Leather-bound Book Cards */
+  /* Glass card — primary surfaces */
   .leather-card {
-    @apply bg-gradient-leather border-2 border-brass-border rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)];
-    background-image: 
-      var(--gradient-leather),
-      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    background: hsl(222 16% 9% / 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(222 14% 20% / 0.8);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
   }
-  
-  /* Aged Parchment Cards */
+
+  /* Glass card — lighter variant */
   .parchment-card {
-    @apply bg-parchment-bg border-2 border-parchment-border rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.4)];
-    background-image: 
-      radial-gradient(circle at 20% 30%, rgba(120,80,40,0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(100,70,40,0.04) 0%, transparent 50%);
+    background: hsl(222 14% 11% / 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(222 12% 22% / 0.7);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.38);
   }
-  
-  /* Brass/Gold Glow */
+
+  /* Gold text glow */
   .brass-glow {
-    @apply text-primary drop-shadow-[0_0_12px_rgba(218,165,32,0.6)];
+    color: hsl(42 95% 60%);
+    text-shadow: 0 0 20px hsl(42 95% 60% / 0.35);
   }
-  
-  /* Embossed Border Effect */
+
+  /* Embossed border */
   .embossed-border {
-    @apply border-2 border-brass-border shadow-[inset_0_1px_2px_rgba(255,255,255,0.2),inset_0_-1px_2px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.4)];
+    border: 1px solid hsl(222 14% 22%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.4);
   }
-  
-  /* Vintage Hover Effect */
+
+  /* Hover effect */
   .hover-brass {
-    @apply transition-all duration-300 hover:shadow-glow-strong hover:border-primary-light hover:scale-[1.02];
+    @apply transition-all duration-200 hover:shadow-glow-strong hover:border-primary/40 hover:scale-[1.02];
   }
-  
-  /* Dust Mote Float Animation */
-  @keyframes float-dust {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; }
-    50% { transform: translate(var(--x), var(--y)) rotate(180deg); opacity: 0.5; }
-  }
-  
-  /* Warm Brass Glow Pulse */
+
+  /* Gold glow pulse — for orbs and accents */
   @keyframes pulse-brass-glow {
-    0%, 100% { box-shadow: 0 0 30px hsl(42 88% 45% / 0.3); }
-    50% { box-shadow: 0 0 50px hsl(42 88% 50% / 0.6); }
+    0%, 100% { box-shadow: 0 0 30px hsl(42 95% 55% / 0.25); }
+    50%       { box-shadow: 0 0 50px hsl(42 95% 60% / 0.45); }
   }
-  
-  /* Vintage Shimmer */
+
+  .animate-pulse-brass {
+    animation: pulse-brass-glow 4s ease-in-out infinite;
+  }
+
+  /* Shimmer sweep */
   @keyframes shimmer {
-    0% { background-position: -100% 0; }
+    0%   { background-position: -100% 0; }
     100% { background-position: 200% 0; }
   }
-  
-  .animate-pulse-brass {
-    animation: pulse-brass-glow 3s ease-in-out infinite;
-  }
-  
+
   .animate-shimmer {
-    background: linear-gradient(90deg, transparent, rgba(218,165,32,0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(218, 165, 32, 0.15), transparent);
     background-size: 200% 100%;
-    animation: shimmer 3s ease-in-out infinite;
+    animation: shimmer 2.5s ease-in-out infinite;
   }
-  
-  /* Vintage Texture Background */
-  .vintage-texture {
-    background-image: 
-      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05' /%3E%3C/svg%3E");
+
+  /* Floating orb animations for background */
+  @keyframes orb-float-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(3vw, -2vw) scale(1.05); }
+    66%      { transform: translate(-2vw, 2vw) scale(0.97); }
+  }
+
+  @keyframes orb-float-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    40%      { transform: translate(-3vw, 2vw) scale(1.08); }
+    70%      { transform: translate(2vw, -3vw) scale(0.95); }
+  }
+
+  /* Pulse soft */
+  @keyframes pulse-soft {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px hsl(42 95% 55% / 0.2); }
+    50%      { transform: scale(1.02); box-shadow: 0 0 40px hsl(42 95% 60% / 0.4); }
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
+
+  /* Fade out */
+  @keyframes fadeOut {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.98); pointer-events: none; }
+  }
+
+  /* Dust mote (kept for compat) */
+  @keyframes float-dust {
+    0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+    50%      { transform: translate(20px, -30px); opacity: 0.5; }
+  }
+
+  .dust-mote { animation: float-dust linear infinite; }
+
+  /* Onboarding step backgrounds — updated to dark glass */
+  .onboarding-step-1 {
+    background: linear-gradient(135deg, hsl(222 20% 10%) 0%, hsl(222 18% 7%) 100%),
+      radial-gradient(circle at 50% 30%, hsl(42 95% 60% / 0.12) 0%, transparent 55%);
+  }
+
+  .onboarding-step-2 {
+    background: linear-gradient(135deg, hsl(222 18% 9%) 0%, hsl(222 20% 6%) 100%),
+      radial-gradient(circle at 50% 40%, hsl(195 75% 52% / 0.1) 0%, transparent 60%);
+  }
+
+  .onboarding-step-3 {
+    background: linear-gradient(135deg, hsl(222 20% 11%) 0%, hsl(222 18% 8%) 100%),
+      radial-gradient(circle at 50% 50%, hsl(42 95% 60% / 0.15) 0%, transparent 55%);
   }
 }
 
@@ -128,92 +227,23 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground vintage-texture;
-    font-family: 'Crimson Text', 'Georgia', serif;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', 'Crimson Text', system-ui, sans-serif;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', 'Georgia', serif;
   }
-  
+
   .font-display {
     font-family: 'Playfair Display', 'Georgia', serif;
   }
-  
+
   .font-title {
     font-family: 'Cinzel', 'Georgia', serif;
   }
 
-  /* Dust motes animation */
-  @keyframes float-dust {
-    0%, 100% {
-      transform: translate(0, 0);
-      opacity: 0.3;
-    }
-    50% {
-      transform: translate(20px, -30px);
-      opacity: 0.6;
-    }
-  }
-
-  .dust-mote {
-    animation: float-dust linear infinite;
-  }
-
-  /* Onboarding story backgrounds */
-  .onboarding-step-1 {
-    background: linear-gradient(135deg, 
-      hsl(30 35% 25%) 0%, 
-      hsl(35 40% 20%) 50%,
-      hsl(30 30% 15%) 100%
-    ),
-    radial-gradient(circle at 50% 30%, hsl(42 88% 55% / 0.15) 0%, transparent 50%);
-  }
-
-  .onboarding-step-2 {
-    background: linear-gradient(135deg, 
-      hsl(25 30% 20%) 0%, 
-      hsl(30 35% 18%) 50%,
-      hsl(25 25% 12%) 100%
-    ),
-    radial-gradient(circle at 50% 40%, hsl(38 60% 45% / 0.2) 0%, transparent 60%);
-  }
-
-  .onboarding-step-3 {
-    background: linear-gradient(135deg, 
-      hsl(35 40% 22%) 0%, 
-      hsl(40 45% 20%) 50%,
-      hsl(30 35% 15%) 100%
-    ),
-    radial-gradient(circle at 50% 50%, hsl(42 88% 55% / 0.25) 0%, transparent 50%);
-  }
-
-  /* Pulse animation for CTA */
-  @keyframes pulse-soft {
-    0%, 100% {
-      transform: scale(1);
-      box-shadow: 0 0 20px hsl(42 88% 55% / 0.3);
-    }
-    50% {
-      transform: scale(1.02);
-      box-shadow: 0 0 40px hsl(42 88% 55% / 0.5);
-    }
-  }
-
-  .animate-pulse-soft {
-    animation: pulse-soft 3s ease-in-out infinite;
-  }
-
-  /* Fade out animation for onboarding */
-  @keyframes fadeOut {
-    0% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(0.98);
-      pointer-events: none;
-    }
+  .font-body {
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }

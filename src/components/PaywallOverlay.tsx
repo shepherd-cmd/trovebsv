@@ -7,6 +7,7 @@ import { CoinRainAnimation } from "@/components/CoinRainAnimation";
 import { playCashRegisterSound } from "@/utils/cashRegisterSound";
 import { useHandCash } from "@/contexts/HandCashContext";
 import { PaymentDeepLink } from "@/components/PaymentDeepLink";
+import { getBsvGbpPrice, satsToGbp } from "@/utils/bsvPrice";
 
 interface PaywallOverlayProps {
   document: {
@@ -26,6 +27,7 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCoinRain, setShowCoinRain] = useState(false);
   const [isLifetimeUser, setIsLifetimeUser] = useState(false);
+  const [gbpPrice, setGbpPrice] = useState<string | null>(null);
   const baseUnlockPrice = 300; // satoshis
   const unlockPrice = isLifetimeUser ? 150 : baseUnlockPrice; // 50% discount for lifetime users
   const bsvPrice = unlockPrice / 100000000; // Convert sats to BSV
@@ -48,6 +50,12 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
     
     checkLifetimeStatus();
   }, []);
+
+  useEffect(() => {
+    getBsvGbpPrice().then(price => {
+      setGbpPrice(satsToGbp(unlockPrice, price));
+    });
+  }, [unlockPrice]);
 
   const handleUnlock = async () => {
     if (!isConnected) {
@@ -77,9 +85,10 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
         `Unlock: ${document.title}`
       );
 
-      // Calculate shares for database record
-      const ownerShare = bsvPrice * 0.8;
-      const platformShare = bsvPrice * 0.2;
+      // Calculate shares for database record (80/10/10 split)
+      const ownerShare = bsvPrice * 0.80;
+      const platformShare = bsvPrice * 0.10;
+      // gorillaPoolShare = bsvPrice * 0.10 (paid via process-payment edge function)
 
       // Create unlock record
       const { error: unlockError } = await supabase
@@ -131,7 +140,7 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
 
       // Show success message with owner credit
       toast.success(
-        `You just paid ${bsvPrice.toFixed(8)} BSV to @${ownerUsername} – thank you for preserving history!`,
+        `You just paid ${gbpPrice ?? bsvPrice.toFixed(8) + ' BSV'} to @${ownerUsername} – thank you for preserving history!`,
         {
           duration: 5000,
         }
@@ -250,16 +259,16 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
           }}
         >
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Coins 
-              className="h-5 w-5" 
+            <Coins
+              className="h-5 w-5"
               style={{ color: 'hsl(42 88% 55%)' }}
             />
             <span className="text-2xl font-bold font-display" style={{ color: 'hsl(42 88% 55%)' }}>
-              {unlockPrice} satoshis
+              {gbpPrice ?? '...'}
             </span>
           </div>
           <p className="text-xs text-muted-foreground font-body">
-            ≈ ${(unlockPrice * 0.0004).toFixed(2)} USD • {bsvPrice.toFixed(8)} BSV
+            {unlockPrice} sats • {bsvPrice.toFixed(8)} BSV
           </p>
           {isLifetimeUser && (
             <p className="text-xs font-bold font-display mt-1" style={{ color: 'hsl(42 88% 55%)' }}>
@@ -267,7 +276,7 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
             </p>
           )}
           <p className="text-xs text-muted-foreground font-body mt-2">
-            80% to creator, 20% to platform treasury
+            80% to creator · 10% to Trove · 10% to Gorilla Pool
           </p>
         </div>
 

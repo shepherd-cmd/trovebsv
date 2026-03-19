@@ -6,8 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const TREASURY_PAYMAIL = '$trove-treasury@handcash.io';
-const INSCRIPTION_COST = 250; // sats
+// Business wallet - TODO: replace with actual HandCash business wallet paymail once created
+const TREASURY_PAYMAIL = '$trove-business';
+const INSCRIPTION_COST = 500; // sats (covers on-chain fee ~200 + Gorilla Pool indexing ~200 + platform ~100)
 const LOW_TREASURY_THRESHOLD = 100; // BSV (100 * 100,000,000 sats)
 
 serve(async (req) => {
@@ -37,10 +38,10 @@ serve(async (req) => {
 
     console.log('Sponsor inscription request:', { userId: user.id, documentId });
 
-    // Check user's free inscription slots
+    // Check user's inscription credit balance
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('free_inscriptions_remaining, username')
+      .select('inscription_credits, username')
       .eq('id', user.id)
       .single();
 
@@ -48,9 +49,9 @@ serve(async (req) => {
       throw new Error('Profile not found');
     }
 
-    if (profile.free_inscriptions_remaining <= 0) {
-      return new Response(JSON.stringify({ 
-        error: 'No free inscriptions remaining',
+    if (profile.inscription_credits <= 0) {
+      return new Response(JSON.stringify({
+        error: 'No inscription credits remaining. Purchase more credits to continue.',
         treasurySponsored: false
       }), {
         status: 400,
@@ -84,26 +85,26 @@ serve(async (req) => {
     // Simulate inscription delay
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Decrement user's free inscriptions
+    // Decrement user's inscription credits
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ 
-        free_inscriptions_remaining: profile.free_inscriptions_remaining - 1 
+      .update({
+        inscription_credits: profile.inscription_credits - 1
       })
       .eq('id', user.id);
 
     if (updateError) {
-      console.error('Failed to decrement free inscriptions:', updateError);
+      console.error('Failed to decrement inscription credits:', updateError);
     }
 
-    // Log treasury transaction
+    // Log treasury transaction (500 sats = 0.000005 BSV)
     const { error: txLogError } = await supabase
       .from('treasury_transactions')
       .insert({
         user_id: user.id,
         username: profile.username || 'anonymous',
-        amount: -0.00000250, // 250 sats in BSV
-        transaction_type: 'sponsored_inscription',
+        amount: -0.000005, // 500 sats in BSV
+        transaction_type: 'inscription_credit_used',
         txid: mockTxId
       });
 
@@ -118,7 +119,7 @@ serve(async (req) => {
       txid: mockTxId,
       payableLink,
       treasurySponsored: true,
-      remainingFreeInscriptions: profile.free_inscriptions_remaining - 1
+      remainingCredits: profile.inscription_credits - 1
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

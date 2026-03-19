@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useTroveStore } from "@/store/useTroveStore";
@@ -34,6 +35,15 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
   const [provenanceScore, setProvenanceScore] = useState<number | null>(null);
   const [provenanceDescription, setProvenanceDescription] = useState<string>("");
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
+  const [showDeclaration, setShowDeclaration] = useState(false);
+  const [pendingInscription, setPendingInscription] = useState<{ title: string; royaltyPercent: number } | null>(null);
+  const [cameraError, setCameraError] = useState<'denied' | 'unavailable' | null>(null);
+  const [declarations, setDeclarations] = useState({
+    ownsRights: false,
+    noPersonalData: false,
+    understoodPermanence: false,
+    acceptsResponsibility: false,
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filterCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,23 +60,32 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
 
   const startCamera = async () => {
     try {
+      // Check API availability first (older browsers / non-HTTPS)
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraError('unavailable');
+        return;
+      }
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false
       });
+      setCameraError(null);
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
-      // Notify success once camera is ready
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
+      if (onSuccess) onSuccess();
+    } catch (error: unknown) {
       console.error("Camera access error:", error);
-      if (onError) {
-        onError();
+      // NotAllowedError = user denied permission
+      // NotFoundError   = no camera hardware
+      const name = (error as { name?: string })?.name ?? '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setCameraError('denied');
+      } else {
+        setCameraError('unavailable');
       }
+      if (onError) onError();
     }
   };
 
@@ -203,10 +222,25 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
     setShowOriginal(!showOriginal);
   };
 
+  // Called by InscriptionBottomSheet — shows declaration gate before proceeding
+  const requestInscription = (title: string, royaltyPercent: number) => {
+    setShowBottomSheet(false);
+    setDeclarations({ ownsRights: false, noPersonalData: false, understoodPermanence: false, acceptsResponsibility: false });
+    setPendingInscription({ title, royaltyPercent });
+    setShowDeclaration(true);
+  };
+
+  const allDeclared = Object.values(declarations).every(Boolean);
+
+  const confirmInscription = () => {
+    if (!allDeclared || !pendingInscription) return;
+    setShowDeclaration(false);
+    inscribeDocument(pendingInscription.title, pendingInscription.royaltyPercent);
+  };
+
   const inscribeDocument = async (title: string, royaltyPercent: number) => {
     if (!capturedImage) return;
-    
-    setShowBottomSheet(false);
+
     setIsInscribing(true);
     setDocumentTitle(title);
     
@@ -356,19 +390,124 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
       {showBottomSheet && (
         <InscriptionBottomSheet
           onClose={() => setShowBottomSheet(false)}
-          onInscribe={inscribeDocument}
+          onInscribe={requestInscription}
         />
       )}
-      {/* Close button */}
+
+      {/* Declaration gate — shown before every inscription */}
+      {showDeclaration && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          style={{ background: 'rgba(20, 15, 10, 0.92)' }}
+        >
+          <div className="relative max-w-md w-full parchment-card p-7 shadow-glow-strong animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-5">
+              <AlertTriangle className="h-6 w-6 shrink-0" style={{ color: 'hsl(38 60% 45%)' }} />
+              <h3 className="text-xl font-display font-bold text-primary">Before You Inscribe</h3>
+            </div>
+            <p className="text-sm font-body text-muted-foreground mb-5">
+              Inscriptions are <span className="font-bold text-card-foreground">permanent and cannot be deleted</span> from the BSV blockchain. Please confirm the following:
+            </p>
+
+            <div className="space-y-4 mb-6">
+              {[
+                { key: 'ownsRights', label: 'I own this material, or it is in the public domain, and I have the right to upload it.' },
+                { key: 'noPersonalData', label: 'This document does not contain personal data of living individuals without their consent.' },
+                { key: 'understoodPermanence', label: 'I understand this inscription is permanent and cannot be removed from the blockchain.' },
+                { key: 'acceptsResponsibility', label: 'I accept full legal responsibility for the content I am uploading.' },
+              ].map(({ key, label }) => (
+                <div key={key} className="flex items-start gap-3">
+                  <Checkbox
+                    id={key}
+                    checked={declarations[key as keyof typeof declarations]}
+                    onCheckedChange={(checked) =>
+                      setDeclarations(prev => ({ ...prev, [key]: !!checked }))
+                    }
+                    className="mt-0.5"
+                  />
+                  <label htmlFor={key} className="text-sm font-body text-card-foreground cursor-pointer leading-snug">
+                    {label}
+                  </label>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => { setShowDeclaration(false); setPendingInscription(null); }}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!allDeclared}
+                onClick={confirmInscription}
+                className="flex-1 font-display font-bold"
+                style={{
+                  background: allDeclared
+                    ? 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)'
+                    : undefined,
+                  boxShadow: allDeclared ? '0 4px 12px rgba(139, 90, 0, 0.4)' : undefined,
+                }}
+              >
+                Confirm & Inscribe
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Camera permission / availability error screen */}
+      {cameraError && (
+        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-8 text-center"
+          style={{ background: 'rgba(10,8,5,0.96)' }}>
+          <div className="text-5xl mb-4">📷</div>
+          <h2 className="text-2xl font-display font-bold mb-3 brass-glow">
+            {cameraError === 'denied' ? 'Camera Access Denied' : 'Camera Unavailable'}
+          </h2>
+          <p className="text-muted-foreground mb-6 leading-relaxed">
+            {cameraError === 'denied'
+              ? 'Trove needs camera access to scan documents. Please allow camera access in your device settings, then try again.'
+              : 'No camera was found on this device, or your browser does not support camera access. Try opening Trove in Safari on your iPhone or Chrome on Android.'}
+          </p>
+          {cameraError === 'denied' && (
+            <p className="text-xs text-muted-foreground mb-6">
+              On iPhone: Settings → Safari → Camera → Allow
+            </p>
+          )}
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <button
+              onClick={startCamera}
+              className="w-full py-4 rounded-xl font-display font-bold text-sm tap-target"
+              style={{
+                background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+                color: 'hsl(30 25% 10%)',
+              }}
+            >
+              Try Again
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-4 rounded-xl font-display text-sm tap-target"
+              style={{ border: '1px solid hsl(222 14% 22%)', color: 'hsl(40 20% 70%)' }}
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Close button — minimum 44×44px tap target */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-sm"
-        style={{ 
+        className="absolute right-4 z-50 flex items-center justify-center w-11 h-11 rounded-full bg-background/80 backdrop-blur-sm"
+        style={{
           top: 'calc(1rem + env(safe-area-inset-top))',
           color: 'hsl(38 60% 45%)'
         }}
+        aria-label="Close camera"
       >
-        <X className="w-6 h-6" />
+        <X className="w-5 h-5" />
       </button>
 
       {!capturedImage ? (
