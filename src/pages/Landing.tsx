@@ -42,7 +42,7 @@ function FeatureCards() {
           <button
             key={idx}
             onClick={() => setOpenIdx(idx)}
-            className="parchment-card p-6 text-center hover-brass group w-full tap-target"
+            className="parchment-card p-6 text-center hover-brass group w-full tap-target flex flex-col items-center"
           >
             <item.icon
               className="w-8 h-8 mx-auto mb-3 group-hover:scale-110 transition-transform"
