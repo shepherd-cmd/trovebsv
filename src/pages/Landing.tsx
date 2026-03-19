@@ -451,9 +451,24 @@ function FeatureCards() {
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { balanceBSV, hasPaidEntryFee } = useTroveStore();
+  const { hasPaidEntryFee } = useTroveStore();
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
   const [showEntryPaywall, setShowEntryPaywall] = useState(false);
+  const [royaltiesGbp, setRoyaltiesGbp] = useState<string | null>(null);
+
+  // Fetch real total royalties paid to uploaders on mount
+  useEffect(() => {
+    Promise.all([
+      supabase.from('document_unlocks').select('owner_share'),
+      getBsvGbpPrice(),
+    ]).then(([{ data }, price]) => {
+      if (data) {
+        const totalBsv = data.reduce((sum, row) => sum + Number(row.owner_share), 0);
+        const gbp = totalBsv * price;
+        setRoyaltiesGbp(gbp > 0 ? `£${gbp.toFixed(2)}` : null);
+      }
+    });
+  }, []);
 
   const handleOpenCamera = () => {
     if (!hasPaidEntryFee) {
@@ -643,11 +658,13 @@ const Landing = () => {
           </h2>
 
           <div className="leather-card p-8 mb-6 text-center animate-pulse-brass">
-            <p className="text-sm text-muted-foreground mb-2 tracking-wide uppercase">Total earnings paid out</p>
+            <p className="text-sm text-muted-foreground mb-2 tracking-wide uppercase">Total royalties paid to uploaders</p>
             <p className="text-5xl md:text-6xl font-bold font-display brass-glow">
-              {balanceBSV.toFixed(5)} BSV
+              {royaltiesGbp ?? '£0.00'}
             </p>
-            <p className="text-sm text-muted-foreground mt-2">and growing</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {royaltiesGbp ? 'and growing every unlock' : 'Be the first — upload a curiosity'}
+            </p>
           </div>
 
           <FeatureCards />
