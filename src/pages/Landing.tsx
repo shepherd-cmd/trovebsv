@@ -26,10 +26,34 @@ interface RecentDoc {
   created_at: string;
 }
 
-const PLACEHOLDERS = [
-  { title: 'Waiting for first upload…',    category: 'Be the first archivist' },
-  { title: 'Your curiosity could be here', category: 'Upload something extraordinary' },
-  { title: 'History is waiting…',          category: 'Scan · Inscribe · Earn' },
+const PLACEHOLDERS: RecentDoc[] = [
+  {
+    id: 'demo-1',
+    title: 'Love letter home from the Western Front, 1917',
+    category: 'WW1 Correspondence',
+    image_url: 'https://picsum.photos/seed/ww1letter/600/600',
+    owner_paymail: '$archive_demo',
+    rarity_score: 87,
+    created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(), // 20 mins ago
+  },
+  {
+    id: 'demo-2',
+    title: 'Victorian family portrait, Sheffield 1887',
+    category: 'Victorian Photography',
+    image_url: 'https://picsum.photos/seed/victorian1887/600/600',
+    owner_paymail: '$archive_demo',
+    rarity_score: 74,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3 hrs ago
+  },
+  {
+    id: 'demo-3',
+    title: 'WW2 ration book and identity card, Liverpool 1943',
+    category: 'WW2 Home Front',
+    image_url: 'https://picsum.photos/seed/rationbook43/600/600',
+    owner_paymail: '$archive_demo',
+    rarity_score: 91,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString(), // 7 hrs ago
+  },
 ];
 
 function RecentlyUploaded() {
@@ -95,7 +119,7 @@ function RecentlyUploaded() {
     }
   };
 
-  const displayItems = docs.length > 0 ? docs : null;
+  const displayItems = docs.length > 0 ? docs : PLACEHOLDERS;
 
   return (
     <>
@@ -118,7 +142,7 @@ function RecentlyUploaded() {
 
           {/* Polaroid grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-            {(displayItems ?? PLACEHOLDERS).map((doc: any, i: number) => {
+            {displayItems.map((doc: any, i: number) => {
               const isReal    = !!doc.id;
               const isHovered = hoveredId === (doc.id ?? `ph-${i}`);
               return (
