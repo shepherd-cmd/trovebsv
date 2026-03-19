@@ -19,7 +19,7 @@ const stepContent = {
     bgClass: "onboarding-step-2",
   },
   3: {
-    title: "Step 3 – Let It Pay Your Bloodline",
+    title: "Step 3 – Let It Pay Your Family, Forever",
     body: "Every time someone views your treasure, tiny royalties flow to you and your descendants — forever.",
     bgClass: "onboarding-step-3",
   },

@@ -1,136 +1,232 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTroveStore } from "@/store/useTroveStore";
 import { Button } from "@/components/ui/button";
-import { Book, LogOut, Home, DoorOpen, TrendingUp, Users, Coins, Gift, RefreshCw } from "lucide-react";
+import {
+  LogOut, Home, RefreshCw, TrendingUp,
+  FileText, Eye, Bot, Coins,
+  Users, Unlock, Globe, ArrowUpRight,
+} from "lucide-react";
+import { getBsvGbpPrice, satsToGbp } from "@/utils/bsvPrice";
 
-interface TreasuryStats {
-  totalBsvInTreasury: number;
-  totalTreasuresPreserved: number;
-  totalRoyaltiesPaid: number;
-  sponsoredInscriptionsLeft: number;
+interface PlatformStats {
+  documentsInscribed: number;
+  totalHumanViews: number;
+  totalAiCrawls: number;
+  aiSatsEarned: number;
+  totalUnlocks: number;
+  totalRoyaltiesBsv: number;
+  gorillaPoolBsv: number;
+  payingArchivists: number;
+  totalUsers: number;
+  treasuryBsv: number;
 }
 
-interface TreasuryTransaction {
+interface RecentActivity {
   id: string;
-  username: string;
-  amount: number;
-  transaction_type: string;
+  type: 'unlock' | 'inscription';
+  label: string;
+  amount?: number;
   created_at: string;
 }
 
+const EMPTY_STATS: PlatformStats = {
+  documentsInscribed: 0,
+  totalHumanViews: 0,
+  totalAiCrawls: 0,
+  aiSatsEarned: 0,
+  totalUnlocks: 0,
+  totalRoyaltiesBsv: 0,
+  gorillaPoolBsv: 0,
+  payingArchivists: 0,
+  totalUsers: 0,
+  treasuryBsv: 0,
+};
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
+function timeAgo(iso: string): string {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60)    return `${s}s ago`;
+  if (s < 3600)  return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+// ── Metric Card ───────────────────────────────────────────────────────────────
+
+interface MetricCardProps {
+  icon: React.ReactNode;
+  label: string;
+  sublabel: string;
+  value: string;
+  subvalue?: string;
+  accent: string;
+  fillPct?: number;
+  badge?: string;
+}
+
+function MetricCard({ icon, label, sublabel, value, subvalue, accent, fillPct, badge }: MetricCardProps) {
+  return (
+    <div
+      className="relative flex flex-col p-5 rounded-sm overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(20,14,8,0.92) 0%, rgba(30,20,12,0.88) 100%)',
+        border: `1px solid ${accent}33`,
+        boxShadow: `0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 ${accent}18`,
+      }}
+    >
+      <div
+        className="absolute top-0 right-0 w-32 h-32 pointer-events-none"
+        style={{ background: `radial-gradient(circle at 80% 20%, ${accent}14 0%, transparent 70%)` }}
+      />
+      <div className="flex items-start justify-between mb-4 relative z-10">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-sm" style={{ background: `${accent}1a`, border: `1px solid ${accent}40` }}>
+            {icon}
+          </div>
+          <div>
+            <p className="text-xs font-bold font-display uppercase tracking-wider" style={{ color: accent }}>
+              {label}
+            </p>
+            <p className="text-xs text-muted-foreground font-body">{sublabel}</p>
+          </div>
+        </div>
+        {badge && (
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded-sm font-display"
+            style={{ background: `${accent}2a`, color: accent, border: `1px solid ${accent}40` }}
+          >
+            {badge}
+          </span>
+        )}
+      </div>
+
+      <div className="relative z-10 mb-1">
+        <span className="text-4xl font-bold font-display" style={{ color: accent }}>{value}</span>
+      </div>
+      {subvalue && (
+        <p className="text-xs text-muted-foreground font-body relative z-10 mb-3">{subvalue}</p>
+      )}
+      {fillPct !== undefined && (
+        <div className="mt-auto relative z-10 h-1.5 rounded-full overflow-hidden" style={{ background: `${accent}1a` }}>
+          <div
+            className="h-full rounded-full transition-all duration-1000"
+            style={{ width: `${Math.min(fillPct, 100)}%`, background: `linear-gradient(90deg, ${accent} 0%, ${accent}88 100%)` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Treasury Page ─────────────────────────────────────────────────────────────
+
 const Treasury = () => {
-  const { user, session, setUser, setSession, balanceBSV, setBalanceBSV, totalRoyaltiesPaid, setTotalRoyaltiesPaid, totalSponsored, setTotalSponsored } = useTroveStore();
-  const [stats, setStats] = useState<TreasuryStats>({
-    totalBsvInTreasury: balanceBSV,
-    totalTreasuresPreserved: 0,
-    totalRoyaltiesPaid: totalRoyaltiesPaid,
-    sponsoredInscriptionsLeft: totalSponsored,
-  });
-  const [recentTransactions, setRecentTransactions] = useState<TreasuryTransaction[]>([]);
-  const [showDonationPrompt, setShowDonationPrompt] = useState(false);
+  const { user, setUser, setSession } = useTroveStore();
+  const [stats, setStats]             = useState<PlatformStats>(EMPTY_STATS);
+  const [activity, setActivity]       = useState<RecentActivity[]>([]);
+  const [gbpPrice, setGbpPrice]       = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [secondsSince, setSecondsSince] = useState(0);
   const navigate = useNavigate();
 
+  // Auth guard
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      if (!session) {
-        navigate("/");
-      }
+      if (!session) navigate("/");
     });
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      if (!session) {
-        navigate("/");
-      }
+      if (!session) navigate("/");
     });
-
     return () => subscription.unsubscribe();
   }, [navigate, setUser, setSession]);
 
+  // "Xs ago" ticker
   useEffect(() => {
-    if (user) {
-      loadTreasuryStats();
+    const t = setInterval(() => setSecondsSince(
+      Math.floor((Date.now() - lastUpdated.getTime()) / 1000)
+    ), 1000);
+    return () => clearInterval(t);
+  }, [lastUpdated]);
 
-      // Poll treasury balance every 30 seconds
-      const interval = setInterval(() => {
-        loadTreasuryStats();
-      }, 30000);
-
-      return () => clearInterval(interval);
-    }
-  }, [user]);
-
-  const loadTreasuryStats = async () => {
+  const loadStats = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      // Get treasury balance from HandCash
-      const { data: balanceData } = await supabase.functions.invoke('get-treasury-balance');
-      const treasuryBalanceBSV = balanceData?.balanceBSV || 0;
+      const [price, balanceRes] = await Promise.all([
+        getBsvGbpPrice(),
+        supabase.functions.invoke('get-treasury-balance'),
+      ]);
+      setGbpPrice(price);
+      const treasuryBsv = balanceRes.data?.balanceBSV ?? 0;
 
-      // Get all document unlocks to calculate royalties
-      const { data: unlocks } = await supabase
-        .from('document_unlocks')
-        .select('owner_share');
-
-      // Get total number of documents
-      const { count: documentsCount } = await supabase
-        .from('documents')
-        .select('*', { count: 'exact', head: true });
-
-      // Calculate total free inscriptions remaining across all Lifetime Archivists
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('free_inscriptions_remaining')
-        .eq('lifetime_archivist', true);
-      
-      const totalFreeInscriptionsLeft = profiles?.reduce((sum, p) => sum + (p.free_inscriptions_remaining || 0), 0) || 0;
-
-      // Get recent treasury transactions
-      const { data: transactions } = await supabase
-        .from('treasury_transactions')
+      // All counters from platform_stats view — one round-trip
+      const { data: row } = await supabase
+        .from('platform_stats')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .single();
 
-      if (transactions) {
-        setRecentTransactions(transactions);
+      if (row) {
+        setStats({
+          documentsInscribed: row.documents_inscribed    ?? 0,
+          totalHumanViews:    Number(row.total_human_views ?? 0),
+          totalAiCrawls:      Number(row.total_ai_crawls   ?? 0),
+          aiSatsEarned:       Number(row.ai_sats_earned    ?? 0),
+          totalUnlocks:       row.total_unlocks            ?? 0,
+          totalRoyaltiesBsv:  Number(row.total_royalties_bsv ?? 0),
+          gorillaPoolBsv:     Number(row.gorilla_pool_bsv    ?? 0),
+          payingArchivists:   row.paying_archivists          ?? 0,
+          totalUsers:         row.total_users                ?? 0,
+          treasuryBsv,
+        });
       }
 
-      // Show donation prompt if treasury is low
-      if (treasuryBalanceBSV < 100) {
-        setShowDonationPrompt(true);
-      }
+      // Recent activity — last 6 unlocks + last 6 inscriptions, interleaved
+      const [unlockRows, inscriptionRows] = await Promise.all([
+        supabase.from('document_unlocks').select('id, created_at, owner_share')
+          .order('created_at', { ascending: false }).limit(6),
+        supabase.from('documents').select('id, title, created_at')
+          .eq('delisted', false).order('created_at', { ascending: false }).limit(6),
+      ]);
 
-      if (unlocks) {
-        const royaltiesTotal = unlocks.reduce((sum, unlock) => sum + Number(unlock.owner_share), 0);
+      const combined: RecentActivity[] = [
+        ...(unlockRows.data ?? []).map(u => ({
+          id: `unlock-${u.id}`, type: 'unlock' as const,
+          label: 'Curiosity unlocked', amount: Number(u.owner_share),
+          created_at: u.created_at,
+        })),
+        ...(inscriptionRows.data ?? []).map(d => ({
+          id: `inscr-${d.id}`, type: 'inscription' as const,
+          label: d.title ?? 'New inscription', created_at: d.created_at,
+        })),
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+       .slice(0, 10);
 
-        const newStats = {
-          totalBsvInTreasury: treasuryBalanceBSV,
-          totalTreasuresPreserved: documentsCount || 0,
-          totalRoyaltiesPaid: royaltiesTotal,
-          sponsoredInscriptionsLeft: totalFreeInscriptionsLeft,
-        };
-        
-        setStats(newStats);
-        setBalanceBSV(treasuryBalanceBSV);
-        setTotalRoyaltiesPaid(royaltiesTotal);
-        setTotalSponsored(totalFreeInscriptionsLeft);
-      }
-
+      setActivity(combined);
       setLastUpdated(new Date());
+      setSecondsSince(0);
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadStats();
+      const t = setInterval(loadStats, 30_000);
+      return () => clearInterval(t);
+    }
+  }, [user, loadStats]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -141,72 +237,65 @@ const Treasury = () => {
 
   if (!user) return null;
 
+  // Derived GBP figures
+  const royaltiesGbp  = gbpPrice > 0
+    ? `£${(stats.totalRoyaltiesBsv * gbpPrice).toFixed(2)}`
+    : `${stats.totalRoyaltiesBsv.toFixed(6)} BSV`;
+
+  const treasuryGbp   = gbpPrice > 0
+    ? `£${(stats.treasuryBsv * gbpPrice).toFixed(2)}`
+    : `${stats.treasuryBsv.toFixed(4)} BSV`;
+
+  const aiEarnedGbp   = gbpPrice > 0 && stats.aiSatsEarned > 0
+    ? satsToGbp(stats.aiSatsEarned, gbpPrice)
+    : null;
+
+  const conversionPct = stats.totalHumanViews > 0
+    ? Math.min((stats.totalUnlocks / stats.totalHumanViews) * 100, 100)
+    : 0;
+
   return (
-    <div 
+    <div
       className="min-h-screen text-foreground relative"
-      style={{
-        background: 'linear-gradient(180deg, hsl(25 30% 12%) 0%, hsl(25 25% 8%) 100%)',
-      }}
+      style={{ background: 'linear-gradient(180deg, hsl(25 30% 7%) 0%, hsl(25 25% 5%) 100%)' }}
     >
-      {/* Ambient dust effect */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            radial-gradient(circle at 30% 40%, rgba(218, 165, 32, 0.03) 0%, transparent 50%),
-            radial-gradient(circle at 70% 60%, rgba(139, 90, 0, 0.02) 0%, transparent 50%)
+            radial-gradient(ellipse at 20% 20%, rgba(218,165,32,0.04) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(139,90,0,0.03) 0%, transparent 50%)
           `,
         }}
       />
 
       {/* Header */}
-      <header 
-        className="border-b-2 border-brass-border/50 leather-card backdrop-blur-sm sticky top-0 z-10 shadow-glow" 
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      <header
+        className="border-b border-brass-border/30 backdrop-blur-sm sticky top-0 z-20"
+        style={{ background: 'rgba(18,12,6,0.94)', paddingTop: 'env(safe-area-inset-top)',
+                 boxShadow: '0 1px 0 rgba(218,165,32,0.1)' }}
       >
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <Coins 
-                  className="h-10 w-10 brass-glow" 
-                  style={{ color: 'hsl(42 88% 55%)', stroke: 'hsl(42 88% 55%)' }}
-                />
-                <div 
-                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
-                  style={{
-                    background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
-                  }}
-                >
-                  <TrendingUp className="h-3 w-3" style={{ color: 'hsl(30 25% 10%)' }} />
-                </div>
+              <div className="p-2 rounded-sm"
+                   style={{ background: 'rgba(218,165,32,0.1)', border: '1px solid rgba(218,165,32,0.25)' }}>
+                <TrendingUp className="h-5 w-5" style={{ color: 'hsl(42 88% 55%)' }} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold font-display bg-gradient-primary bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold font-display" style={{ color: 'hsl(42 88% 60%)' }}>
                   Treasury
                 </h1>
-                <p className="text-xs text-muted-foreground font-body">Platform vault & statistics</p>
+                <p className="text-xs text-muted-foreground font-body">Live platform metrics</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/the-vault")}
-              >
-                <DoorOpen className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
-                The Vault
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/")}
-              >
-                <Home className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="hidden sm:flex">
+                <Home className="mr-1.5 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
                 Home
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
+                <LogOut className="mr-1.5 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
                 Sign Out
               </Button>
             </div>
@@ -214,382 +303,232 @@ const Treasury = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <div className="inline-block mb-6 relative">
-            <div 
-              className="w-32 h-32 mx-auto rounded-full flex items-center justify-center"
-              style={{
-                background: 'radial-gradient(circle, rgba(218, 165, 32, 0.2) 0%, transparent 70%)',
-              }}
-            >
-              <div 
-                className="w-24 h-24 rounded-full flex items-center justify-center"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
-                  boxShadow: '0 8px 24px rgba(139, 90, 0, 0.5), inset 0 2px 8px rgba(255, 255, 255, 0.2)',
-                }}
-              >
-                <Coins className="h-12 w-12" style={{ color: 'hsl(30 25% 10%)' }} />
-              </div>
-            </div>
-          </div>
-          <h2 className="text-5xl font-bold font-display mb-4 brass-glow" style={{ color: 'hsl(38 60% 55%)' }}>
-            Platform Treasury
-          </h2>
-          <p className="text-xl text-muted-foreground font-body max-w-2xl mx-auto mb-6">
-            Every treasure unlocked contributes to preserving history forever. 
-            Watch as the vault grows with each discovery.
-          </p>
+      <main className="container mx-auto px-4 py-6 max-w-4xl">
 
-          {/* Live Update Indicator */}
-          <div className="flex items-center justify-center gap-3">
-            <Button
-              onClick={loadTreasuryStats}
-              disabled={isRefreshing}
-              size="sm"
-              variant="ghost"
-              className="gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} style={{ color: 'hsl(42 88% 55%)' }} />
-              <span className="text-sm text-muted-foreground">
-                {isRefreshing ? 'Updating...' : `Updated ${Math.floor((Date.now() - lastUpdated.getTime()) / 1000)}s ago`}
+        {/* Live ticker strip */}
+        <div
+          className="flex items-center gap-4 mb-6 px-4 py-2.5 rounded-sm overflow-x-auto"
+          style={{ background: 'rgba(218,165,32,0.05)', border: '1px solid rgba(218,165,32,0.15)' }}
+        >
+          {[
+            { label: 'Inscribed',  value: fmt(stats.documentsInscribed), icon: <FileText className="h-3.5 w-3.5" /> },
+            { label: 'Views',      value: fmt(stats.totalHumanViews),    icon: <Eye      className="h-3.5 w-3.5" /> },
+            { label: 'AI Crawls',  value: fmt(stats.totalAiCrawls),      icon: <Bot      className="h-3.5 w-3.5" /> },
+            { label: 'Unlocks',    value: fmt(stats.totalUnlocks),       icon: <Unlock   className="h-3.5 w-3.5" /> },
+            { label: 'Archivists', value: fmt(stats.payingArchivists),   icon: <Users    className="h-3.5 w-3.5" /> },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-1.5 flex-shrink-0">
+              <span style={{ color: 'hsl(42 88% 50%)' }}>{item.icon}</span>
+              <span className="text-xs text-muted-foreground font-body">{item.label}</span>
+              <span className="text-sm font-bold font-display" style={{ color: 'hsl(42 88% 65%)' }}>
+                {item.value}
               </span>
-            </Button>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs text-muted-foreground">Live (polls every 30s)</span>
+              {i < 4 && <span className="mx-1 text-muted-foreground/25">|</span>}
             </div>
-          </div>
+          ))}
+
+          <button
+            onClick={loadStats}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5 ml-auto flex-shrink-0 px-2.5 py-1 rounded-sm"
+            style={{ background: 'rgba(218,165,32,0.1)', border: '1px solid rgba(218,165,32,0.2)' }}
+          >
+            <RefreshCw
+              className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`}
+              style={{ color: 'hsl(42 88% 55%)' }}
+            />
+            <span className="text-xs font-body" style={{ color: 'hsl(42 88% 55%)' }}>
+              {isRefreshing ? 'Loading…' : `${secondsSince}s ago`}
+            </span>
+          </button>
         </div>
 
-        {/* Stats Gauges Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Total BSV in Treasury */}
-          <div 
-            className="parchment-card p-8 relative overflow-hidden group hover-brass"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 30% 40%, rgba(139, 90, 0, 0.05) 0%, transparent 50%)
-              `,
-            }}
-          >
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="p-3 rounded-full"
-                    style={{
-                      background: 'linear-gradient(135deg, hsl(42 88% 55% / 0.2) 0%, hsl(42 88% 45% / 0.1) 100%)',
-                    }}
-                  >
-                    <Coins className="h-8 w-8" style={{ color: 'hsl(42 88% 55%)' }} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground font-display">Total BSV</h3>
-                    <p className="text-xs text-muted-foreground/60 font-body">Platform Treasury</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center py-8">
-                <div 
-                  className="text-6xl font-bold font-display mb-2"
-                  style={{ color: 'hsl(42 88% 55%)' }}
-                >
-                  {stats.totalBsvInTreasury.toFixed(6)}
-                </div>
-                <div className="text-2xl font-display text-muted-foreground">BSV</div>
-                <div className="text-sm text-muted-foreground/70 mt-2 font-body">
-                  ≈ ${(stats.totalBsvInTreasury * 50).toFixed(2)} USD
-                </div>
-              </div>
+        {/* 2×2 Metric cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <MetricCard
+            icon={<FileText className="h-5 w-5" style={{ color: 'hsl(42 88% 55%)' }} />}
+            label="Documents Inscribed"
+            sublabel="Forever on BSV blockchain"
+            value={fmt(stats.documentsInscribed)}
+            subvalue={`${stats.totalUsers} users · ${stats.payingArchivists} paying archivists`}
+            accent="hsl(42, 88%, 55%)"
+            fillPct={(stats.documentsInscribed / Math.max(stats.payingArchivists * 5, 1)) * 100}
+            badge="LIVE"
+          />
 
-              {/* Decorative gauge bars */}
-              <div className="space-y-2">
-                <div 
-                  className="h-2 rounded-full overflow-hidden"
-                  style={{ background: 'rgba(139, 90, 0, 0.1)' }}
-                >
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000"
-                    style={{
-                      width: `${Math.min((stats.totalBsvInTreasury / 1) * 100, 100)}%`,
-                      background: 'linear-gradient(90deg, hsl(42 88% 55%) 0%, hsl(42 88% 45%) 100%)',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <MetricCard
+            icon={<Eye className="h-5 w-5" style={{ color: 'hsl(200, 75%, 60%)' }} />}
+            label="Human Views"
+            sublabel="Unique document page views"
+            value={fmt(stats.totalHumanViews)}
+            subvalue={`${stats.totalUnlocks.toLocaleString()} paid unlocks · ${conversionPct.toFixed(1)}% conversion`}
+            accent="hsl(200, 75%, 60%)"
+            fillPct={conversionPct}
+          />
 
-          {/* Total Treasures Preserved */}
-          <div 
-            className="parchment-card p-8 relative overflow-hidden group hover-brass"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 70% 30%, rgba(139, 90, 0, 0.05) 0%, transparent 50%)
-              `,
-            }}
-          >
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="p-3 rounded-full"
-                    style={{
-                      background: 'linear-gradient(135deg, hsl(38 60% 45% / 0.2) 0%, hsl(38 50% 35% / 0.1) 100%)',
-                    }}
-                  >
-                    <Book className="h-8 w-8" style={{ color: 'hsl(38 60% 45%)' }} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground font-display">Treasures Preserved</h3>
-                    <p className="text-xs text-muted-foreground/60 font-body">Forever on blockchain</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center py-8">
-                <div 
-                  className="text-6xl font-bold font-display mb-2"
-                  style={{ color: 'hsl(38 60% 45%)' }}
-                >
-                  {stats.totalTreasuresPreserved.toLocaleString()}
-                </div>
-                <div className="text-2xl font-display text-muted-foreground">Documents</div>
-                <div className="text-sm text-muted-foreground/70 mt-2 font-body">
-                  Inscribed as 1-sat ordinals
-                </div>
-              </div>
+          <MetricCard
+            icon={<Bot className="h-5 w-5" style={{ color: 'hsl(160, 65%, 50%)' }} />}
+            label="AI Crawls"
+            sublabel="Gorilla Pool agent queries"
+            value={fmt(stats.totalAiCrawls)}
+            subvalue={aiEarnedGbp
+              ? `${aiEarnedGbp} earned from AI micro-fees`
+              : 'Micro-fees accumulate with each crawl'}
+            accent="hsl(160, 65%, 50%)"
+            fillPct={Math.min((stats.totalAiCrawls / 1000) * 100, 100)}
+          />
 
-              <div className="space-y-2">
-                <div 
-                  className="h-2 rounded-full overflow-hidden"
-                  style={{ background: 'rgba(139, 90, 0, 0.1)' }}
-                >
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000"
-                    style={{
-                      width: `${Math.min((stats.totalTreasuresPreserved / 1000) * 100, 100)}%`,
-                      background: 'linear-gradient(90deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Total Royalties Paid */}
-          <div 
-            className="parchment-card p-8 relative overflow-hidden group hover-brass"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 40% 60%, rgba(139, 90, 0, 0.05) 0%, transparent 50%)
-              `,
-            }}
-          >
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="p-3 rounded-full"
-                    style={{
-                      background: 'linear-gradient(135deg, hsl(35 45% 35% / 0.2) 0%, hsl(35 35% 25% / 0.1) 100%)',
-                    }}
-                  >
-                    <Users className="h-8 w-8" style={{ color: 'hsl(35 45% 35%)' }} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground font-display">Royalties Paid</h3>
-                    <p className="text-xs text-muted-foreground/60 font-body">To archivists</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center py-8">
-                <div 
-                  className="text-6xl font-bold font-display mb-2"
-                  style={{ color: 'hsl(35 45% 35%)' }}
-                >
-                  {stats.totalRoyaltiesPaid.toFixed(6)}
-                </div>
-                <div className="text-2xl font-display text-muted-foreground">BSV</div>
-                <div className="text-sm text-muted-foreground/70 mt-2 font-body">
-                  80% goes to creators
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div 
-                  className="h-2 rounded-full overflow-hidden"
-                  style={{ background: 'rgba(139, 90, 0, 0.1)' }}
-                >
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000"
-                    style={{
-                      width: `${Math.min((stats.totalRoyaltiesPaid / 1) * 100, 100)}%`,
-                      background: 'linear-gradient(90deg, hsl(35 45% 35%) 0%, hsl(35 35% 25%) 100%)',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sponsored Inscriptions */}
-          <div 
-            className="parchment-card p-8 relative overflow-hidden group hover-brass"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 60% 50%, rgba(139, 90, 0, 0.05) 0%, transparent 50%)
-              `,
-            }}
-          >
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="p-3 rounded-full"
-                    style={{
-                      background: 'linear-gradient(135deg, hsl(42 88% 55% / 0.2) 0%, hsl(38 60% 45% / 0.1) 100%)',
-                    }}
-                  >
-                    <Gift className="h-8 w-8" style={{ color: 'hsl(42 88% 55%)' }} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground font-display">Free Inscriptions</h3>
-                    <p className="text-xs text-muted-foreground/60 font-body">Treasury sponsored</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center py-8">
-                <div 
-                  className="text-6xl font-bold font-display mb-2"
-                  style={{ color: 'hsl(42 88% 55%)' }}
-                >
-                  {stats.sponsoredInscriptionsLeft}
-                </div>
-                <div className="text-2xl font-display text-muted-foreground">Remaining</div>
-                <div className="text-sm text-muted-foreground/70 mt-2 font-body">
-                  Next batch resets soon
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div 
-                  className="h-2 rounded-full overflow-hidden"
-                  style={{ background: 'rgba(139, 90, 0, 0.1)' }}
-                >
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000"
-                    style={{
-                      width: `${(stats.sponsoredInscriptionsLeft / 50) * 100}%`,
-                      background: 'linear-gradient(90deg, hsl(42 88% 55%) 0%, hsl(42 88% 45%) 100%)',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <MetricCard
+            icon={<Coins className="h-5 w-5" style={{ color: 'hsl(38, 90%, 58%)' }} />}
+            label="Royalties Paid Out"
+            sublabel="80% of every unlock → uploader"
+            value={royaltiesGbp}
+            subvalue={`${stats.totalRoyaltiesBsv.toFixed(6)} BSV · Gorilla Pool: ${stats.gorillaPoolBsv.toFixed(6)} BSV`}
+            accent="hsl(38, 90%, 58%)"
+            fillPct={Math.min(stats.totalRoyaltiesBsv * 100, 100)}
+            badge="80/10/10"
+          />
         </div>
 
-        {/* Donation Prompt */}
-        {showDonationPrompt && (
-          <div className="mt-12 max-w-2xl mx-auto">
-            <div 
-              className="parchment-card p-8 text-center relative overflow-hidden"
-              style={{
-                backgroundImage: `
-                  radial-gradient(circle at 50% 50%, rgba(218, 165, 32, 0.08) 0%, transparent 60%)
-                `,
-                border: '2px solid hsl(42 88% 55% / 0.3)',
-              }}
-            >
-              <TrendingUp className="h-12 w-12 mx-auto mb-4" style={{ color: 'hsl(42 88% 55%)' }} />
-              <h3 className="text-2xl font-bold font-display mb-2" style={{ color: 'hsl(42 88% 55%)' }}>
-                Help Grow The Vault
-              </h3>
-              <p className="text-muted-foreground font-body mb-6">
-                The treasury is running low. Your donation helps sponsor free inscriptions for new archivists and preserves history for future generations.
-              </p>
-              <Button 
-                className="brass-button"
-                onClick={() => {
-                  // Donation flow placeholder
+        {/* Platform Treasury — full width */}
+        <div
+          className="relative rounded-sm p-6 mb-6 overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, rgba(20,14,8,0.97) 0%, rgba(38,26,10,0.92) 100%)',
+            border: '1px solid rgba(218,165,32,0.28)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(218,165,32,0.12)',
+          }}
+        >
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(218,165,32,0.07) 0%, transparent 55%)' }}
+          />
+          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 28%) 100%)',
+                  boxShadow: '0 6px 20px rgba(139,90,0,0.45)',
                 }}
               >
-                <Coins className="mr-2 h-4 w-4" />
-                Contribute to Treasury
-              </Button>
+                <Globe className="h-7 w-7" style={{ color: 'hsl(30 25% 10%)' }} />
+              </div>
+              <div>
+                <p className="text-xs font-bold font-display uppercase tracking-widest mb-0.5"
+                   style={{ color: 'hsl(42 88% 50%)' }}>
+                  Platform Treasury
+                </p>
+                <p className="text-4xl font-bold font-display" style={{ color: 'hsl(42 88% 65%)' }}>
+                  {treasuryGbp}
+                </p>
+                <p className="text-sm text-muted-foreground font-body mt-0.5">
+                  {stats.treasuryBsv.toFixed(6)} BSV · Funds inscriptions & operations
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Recent Sponsored Inscriptions */}
-        {recentTransactions.length > 0 && (
-          <div className="mt-12 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold font-display mb-6 text-center" style={{ color: 'hsl(38 60% 45%)' }}>
-              Recent Treasury Activity
-            </h3>
-            <div className="parchment-card p-6">
-              <div className="space-y-3">
-                {recentTransactions.map((tx) => (
-                  <div 
-                    key={tx.id}
-                    className="flex items-center justify-between p-4 rounded-lg"
-                    style={{
-                      background: 'linear-gradient(90deg, rgba(139, 90, 0, 0.05) 0%, transparent 100%)',
-                      borderLeft: '3px solid hsl(42 88% 55% / 0.3)',
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Gift className="h-5 w-5" style={{ color: 'hsl(42 88% 55%)' }} />
-                      <div>
-                        <p className="font-body text-foreground">
-                          Gifted Inscription to <span className="font-semibold">@{tx.username}</span>
-                        </p>
-                        <p className="text-xs text-muted-foreground font-body">
-                          {new Date(tx.created_at).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold font-body" style={{ color: 'hsl(42 88% 55%)' }}>
-                        {Math.abs(tx.amount).toFixed(8)} BSV
-                      </p>
-                      <p className="text-xs text-muted-foreground font-body">
-                        ≈ ${(Math.abs(tx.amount) * 50).toFixed(2)}
-                      </p>
-                    </div>
+            <div className="flex flex-col items-center sm:items-end gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs text-muted-foreground font-body">Live · polls every 30s</span>
+              </div>
+              <div className="flex gap-6">
+                {[
+                  { pct: '80%', label: 'Uploaders',   color: 'hsl(38 90% 58%)' },
+                  { pct: '10%', label: 'Trove',        color: 'hsl(42 88% 55%)' },
+                  { pct: '10%', label: 'Gorilla Pool', color: 'hsl(160 65% 50%)' },
+                ].map(s => (
+                  <div key={s.label} className="text-center">
+                    <p className="text-lg font-bold font-display" style={{ color: s.color }}>{s.pct}</p>
+                    <p className="text-xs text-muted-foreground font-body">{s.label}</p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Footer Info */}
-        <div className="mt-16 text-center max-w-2xl mx-auto">
-          <div className="parchment-card p-8">
-            <h3 className="text-2xl font-bold font-display mb-4" style={{ color: 'hsl(38 60% 45%)' }}>
-              How The Treasury Works
-            </h3>
-            <div className="space-y-3 text-left text-muted-foreground font-body">
-              <p>• 20% of every treasure unlock goes to the platform treasury</p>
-              <p>• 80% goes directly to the archivist who preserved it</p>
-              <p>• Treasury funds sponsor free inscriptions for new users</p>
-              <p>• All funds remain on-chain, transparent and auditable</p>
-            </div>
+        {/* Recent Activity feed */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold font-display" style={{ color: 'hsl(38 60% 50%)' }}>
+              Recent Activity
+            </h2>
+            <span className="text-xs text-muted-foreground font-body">Last 10 events · live</span>
+          </div>
+
+          <div className="rounded-sm overflow-hidden" style={{ border: '1px solid rgba(139,90,0,0.18)' }}>
+            {activity.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground font-body text-sm">
+                No activity yet — be the first to inscribe a curiosity
+              </div>
+            ) : (
+              activity.map((item, i) => {
+                const isUnlock = item.type === 'unlock';
+                const accent   = isUnlock ? 'hsl(42 88% 55%)' : 'hsl(200 75% 60%)';
+                const Icon     = isUnlock ? Unlock : FileText;
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between px-4 py-3 gap-3"
+                    style={{
+                      background: i % 2 === 0 ? 'rgba(255,255,255,0.012)' : 'transparent',
+                      borderBottom: i < activity.length - 1 ? '1px solid rgba(139,90,0,0.08)' : 'none',
+                    }}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-1.5 rounded-sm flex-shrink-0"
+                           style={{ background: `${accent}1a`, border: `1px solid ${accent}30` }}>
+                        <Icon className="h-3.5 w-3.5" style={{ color: accent }} />
+                      </div>
+                      <span className="text-sm font-body text-foreground/75 truncate">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {item.amount && item.amount > 0 && gbpPrice > 0 && (
+                        <span className="text-sm font-bold font-display" style={{ color: accent }}>
+                          +{satsToGbp(item.amount * 1e8, gbpPrice)}
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground font-body whitespace-nowrap">
+                        {timeAgo(item.created_at)}
+                      </span>
+                      <ArrowUpRight className="h-3 w-3 text-muted-foreground/30" />
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
+
+        {/* Economics summary */}
+        <div
+          className="rounded-sm p-5"
+          style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid rgba(139,90,0,0.12)' }}
+        >
+          <h3 className="text-xs font-bold font-display uppercase tracking-wider mb-3"
+              style={{ color: 'hsl(38 60% 45%)' }}>
+            How The Economics Work
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5">
+            {[
+              '£3.99 one-time entry → 5 inscription credits',
+              '£0.79 per additional credit — top-up anytime',
+              '80% of every unlock paid directly to the uploader',
+              '10% to Trove treasury · 10% to Gorilla Pool indexing',
+              'Fiat-fixed pricing — BSV volatility absorbed by platform',
+              'AI agents pay micro-fees to crawl the archive',
+              'All splits settle on-chain, fully transparent & auditable',
+              'Uploader royalties continue forever — even after death',
+            ].map((line, i) => (
+              <p key={i} className="text-xs text-muted-foreground font-body flex items-start gap-1.5">
+                <span style={{ color: 'hsl(42 88% 55%)' }} className="mt-0.5 flex-shrink-0">·</span>
+                {line}
+              </p>
+            ))}
+          </div>
+        </div>
+
       </main>
     </div>
   );

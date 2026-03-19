@@ -9,6 +9,99 @@ import { playStepSound } from "@/utils/stepSounds";
 import { AmbientSound } from "@/components/AmbientSound";
 import { EntryPaywall } from "@/components/EntryPaywall";
 
+const FEATURE_CARDS = [
+  {
+    icon: Shield,
+    title: "Immutable provenance",
+    desc: "Court-grade proof, timestamped on BSV",
+    synopsis: "The moment you upload something, Trove stamps it to the BSV blockchain — a public record that can never be altered, deleted, or faked. If someone ever asks \"is this genuine?\" — the blockchain answers for you. Permanently.",
+  },
+  {
+    icon: Zap,
+    title: "Instant micropayments",
+    desc: "Fractions of a penny per page, paid in real time",
+    synopsis: "Every time someone unlocks your upload — a historian, a documentary maker, a curious stranger — a small payment lands in your wallet automatically. No waiting, no invoices, no middleman. You upload once and earn forever.",
+  },
+  {
+    icon: FileText,
+    title: "Yours forever",
+    desc: "No middleman, no rug-pull, no expiry",
+    synopsis: "Your upload lives on the blockchain, not on Trove's servers. Even if Trove disappeared tomorrow, your document, your record, and your royalty rights would still exist. It's yours — and your family's — for as long as the internet exists.",
+  },
+];
+
+function FeatureCards() {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const activeCard = openIdx !== null ? FEATURE_CARDS[openIdx] : null;
+
+  return (
+    <>
+      {/* Tiles — identical to original, just tappable */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {FEATURE_CARDS.map((item, idx) => (
+          <button
+            key={idx}
+            onClick={() => setOpenIdx(idx)}
+            className="parchment-card p-6 text-center hover-brass group w-full tap-target flex flex-col items-center"
+          >
+            <item.icon
+              className="w-8 h-8 mx-auto mb-3 group-hover:scale-110 transition-transform"
+              style={{ color: 'hsl(42 95% 60%)' }}
+            />
+            <h3 className="text-base font-bold font-display mb-1 text-primary">{item.title}</h3>
+            <p className="text-sm text-muted-foreground">{item.desc}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Modal overlay — appears when a tile is tapped */}
+      {activeCard && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setOpenIdx(null)}
+        >
+          <div
+            className="parchment-card p-7 max-w-sm w-full text-center"
+            style={{
+              border: '1px solid hsl(42 88% 55% / 0.5)',
+              boxShadow: '0 0 40px rgba(218,165,32,0.2)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <activeCard.icon
+              className="w-10 h-10 mx-auto mb-4"
+              style={{ color: 'hsl(42 95% 60%)' }}
+            />
+            <h3 className="text-lg font-bold font-display mb-1 text-primary">{activeCard.title}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{activeCard.desc}</p>
+            <div
+              className="pt-4 text-sm leading-relaxed text-left"
+              style={{
+                borderTop: '1px solid hsl(42 88% 55% / 0.2)',
+                color: 'hsl(30 20% 78%)',
+              }}
+            >
+              {activeCard.synopsis}
+            </div>
+            <button
+              onClick={() => setOpenIdx(null)}
+              className="mt-5 text-xs font-display uppercase tracking-wider px-4 py-2 rounded-sm"
+              style={{
+                background: 'hsl(42 88% 55% / 0.15)',
+                border: '1px solid hsl(42 88% 55% / 0.3)',
+                color: 'hsl(42 88% 60%)',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 const Landing = () => {
   const navigate = useNavigate();
   const { balanceBSV, hasPaidEntryFee } = useTroveStore();
@@ -210,19 +303,7 @@ const Landing = () => {
             <p className="text-sm text-muted-foreground mt-2">and growing</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              { icon: Shield, title: "Immutable provenance", desc: "Court-grade proof, timestamped on BSV" },
-              { icon: Zap, title: "Instant micropayments", desc: "Fractions of a penny per page, paid in real time" },
-              { icon: FileText, title: "Yours forever", desc: "No middleman, no rug-pull, no expiry" },
-            ].map((item, idx) => (
-              <div key={idx} className="parchment-card p-6 text-center hover-brass group">
-                <item.icon className="w-8 h-8 mx-auto mb-3 group-hover:scale-110 transition-transform" style={{ color: 'hsl(42 95% 60%)' }} />
-                <h3 className="text-base font-bold font-display mb-1 text-primary">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+          <FeatureCards />
         </div>
       </section>
 
