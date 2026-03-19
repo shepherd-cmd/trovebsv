@@ -1,13 +1,171 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTroveStore } from "@/store/useTroveStore";
 import { Button } from "@/components/ui/button";
-import { Shield, TrendingUp, Search, Zap, FileText } from "lucide-react";
+import { Shield, TrendingUp, Search, Zap, FileText, Lock, Clock } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import { StepModal } from "@/components/StepModal";
 import { playStepSound } from "@/utils/stepSounds";
 import { AmbientSound } from "@/components/AmbientSound";
 import { EntryPaywall } from "@/components/EntryPaywall";
+import { supabase } from "@/integrations/supabase/client";
+import { getBsvGbpPrice, satsToGbp } from "@/utils/bsvPrice";
+
+// ── Recently Uploaded ─────────────────────────────────────────────────────────
+
+const UNLOCK_PRICE_SATS = 300;
+
+interface RecentDoc {
+  id: string;
+  title: string;
+  image_url: string;
+  category: string;
+  rarity_score: number;
+  created_at: string;
+}
+
+function RecentlyUploaded({ onUnlockClick }: { onUnlockClick: () => void }) {
+  const [docs, setDocs]         = useState<RecentDoc[]>([]);
+  const [unlockGbp, setUnlockGbp] = useState<string>('...');
+  const [rotation]              = useState(() =>
+    Array.from({ length: 8 }, () => (Math.random() * 6 - 3).toFixed(1))
+  );
+
+  useEffect(() => {
+    supabase
+      .from('documents')
+      .select('id, title, image_url, category, rarity_score, created_at')
+      .eq('delisted', false)
+      .eq('status', 'inscribed')
+      .order('created_at', { ascending: false })
+      .limit(6)
+      .then(({ data }) => { if (data) setDocs(data); });
+
+    getBsvGbpPrice().then(price => setUnlockGbp(satsToGbp(UNLOCK_PRICE_SATS, price)));
+  }, []);
+
+  function timeAgo(iso: string) {
+    const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 3600)  return `${Math.floor(s / 60)}m ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+    return `${Math.floor(s / 86400)}d ago`;
+  }
+
+  if (docs.length === 0) return null;
+
+  return (
+    <section className="py-14 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-3xl font-bold font-display bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Recently Uploaded
+          </h2>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs text-muted-foreground font-body">Live</span>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground mb-8">
+          Fresh curiosities from the community — unlock one and you might find something extraordinary
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+          {docs.map((doc, i) => (
+            <button
+              key={doc.id}
+              onClick={onUnlockClick}
+              className="group text-left tap-target focus:outline-none"
+              style={{ transform: `rotate(${rotation[i]}deg)` }}
+            >
+              {/* Polaroid frame */}
+              <div
+                className="p-3 pb-10 relative transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl"
+                style={{
+                  background: 'linear-gradient(145deg, #f5f0e8 0%, #ede8dc 100%)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.8)',
+                }}
+              >
+                {/* Blurred image */}
+                <div className="aspect-square overflow-hidden relative bg-stone-300">
+                  {doc.image_url ? (
+                    <img
+                      src={doc.image_url}
+                      alt={doc.title}
+                      className="w-full h-full object-cover"
+                      style={{ filter: 'blur(8px) brightness(0.55) sepia(0.3)', transform: 'scale(1.1)' }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-stone-700">
+                      <FileText className="h-8 w-8 text-stone-400" />
+                    </div>
+                  )}
+
+                  {/* Lock overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                    <div
+                      className="p-2 rounded-full"
+                      style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(218,165,32,0.4)' }}
+                    >
+                      <Lock className="h-5 w-5" style={{ color: 'hsl(42 88% 60%)' }} />
+                    </div>
+                    <span
+                      className="text-sm font-bold font-display px-3 py-1 rounded-sm"
+                      style={{
+                        background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+                        color: 'hsl(30 25% 10%)',
+                        boxShadow: '0 2px 8px rgba(139,90,0,0.5)',
+                      }}
+                    >
+                      Unlock {unlockGbp}
+                    </span>
+                  </div>
+
+                  {/* New badge */}
+                  {(Date.now() - new Date(doc.created_at).getTime()) < 86400000 && (
+                    <div
+                      className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-sm font-display"
+                      style={{ background: 'hsl(42 88% 55%)', color: 'hsl(30 25% 10%)' }}
+                    >
+                      NEW
+                    </div>
+                  )}
+                </div>
+
+                {/* Polaroid caption */}
+                <div className="absolute bottom-0 left-0 right-0 px-3 py-2 text-center">
+                  <p
+                    className="text-xs font-medium truncate"
+                    style={{ color: 'hsl(25 30% 25%)', fontFamily: 'cursive' }}
+                  >
+                    {doc.title || 'Unknown document'}
+                  </p>
+                  <div className="flex items-center justify-center gap-1 mt-0.5">
+                    <Clock className="h-2.5 w-2.5" style={{ color: 'hsl(25 20% 50%)' }} />
+                    <span className="text-xs" style={{ color: 'hsl(25 20% 50%)' }}>
+                      {timeAgo(doc.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="text-center mt-8">
+          <Link
+            to="/vault"
+            className="inline-flex items-center gap-2 text-sm font-semibold font-display"
+            style={{ color: 'hsl(42 88% 55%)' }}
+          >
+            Browse the full archive →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Feature Cards ─────────────────────────────────────────────────────────────
 
 const FEATURE_CARDS = [
   {
@@ -341,6 +499,7 @@ const Landing = () => {
             <p className="text-sm text-muted-foreground mb-5">Every rare scan = more discovery = more royalties</p>
             <button
               onClick={handleOpenCamera}
+
               className="inline-flex items-center justify-center px-8 py-3.5 text-sm font-semibold rounded-xl transition-all duration-200 hover:scale-[1.03]"
               style={{
                 background: 'linear-gradient(135deg, hsl(42 95% 55%) 0%, hsl(38 90% 48%) 100%)',
@@ -354,8 +513,10 @@ const Landing = () => {
         </div>
       </section>
 
+      <RecentlyUploaded onUnlockClick={handleOpenCamera} />
+
       <AmbientSound />
-      
+
       {/* Step Modals */}
       <StepModal 
         isOpen={selectedStep !== null} 
