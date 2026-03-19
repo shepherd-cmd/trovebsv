@@ -137,20 +137,19 @@ const Treasury = () => {
   const [secondsSince, setSecondsSince] = useState(0);
   const navigate = useNavigate();
 
-  // Auth guard
+  // Track session for sign out button — but do NOT redirect if not logged in
+  // Treasury is a public dashboard, anyone can view it
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (!session) navigate("/");
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (!session) navigate("/");
     });
     return () => subscription.unsubscribe();
-  }, [navigate, setUser, setSession]);
+  }, [setUser, setSession]);
 
   // "Xs ago" ticker
   useEffect(() => {
@@ -220,13 +219,12 @@ const Treasury = () => {
     }
   }, []);
 
+  // Load stats for everyone — public dashboard
   useEffect(() => {
-    if (user) {
-      loadStats();
-      const t = setInterval(loadStats, 30_000);
-      return () => clearInterval(t);
-    }
-  }, [user, loadStats]);
+    loadStats();
+    const t = setInterval(loadStats, 30_000);
+    return () => clearInterval(t);
+  }, [loadStats]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -235,7 +233,7 @@ const Treasury = () => {
     navigate("/");
   };
 
-  if (!user) return null;
+  // Public page — no auth required
 
   // Derived GBP figures
   const royaltiesGbp  = gbpPrice > 0
@@ -294,10 +292,12 @@ const Treasury = () => {
                 <Home className="mr-1.5 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
                 Home
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="mr-1.5 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
-                Sign Out
-              </Button>
+              {user && (
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="mr-1.5 h-4 w-4" style={{ color: 'hsl(38 60% 45%)' }} />
+                  Sign Out
+                </Button>
+              )}
             </div>
           </div>
         </div>
