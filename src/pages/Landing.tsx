@@ -51,13 +51,20 @@ function RecentlyUploaded({ onUnlockClick }: { onUnlockClick: () => void }) {
     return `${Math.floor(s / 86400)}d ago`;
   }
 
-  if (docs.length === 0) return null;
+  // Placeholder cards shown before any documents are uploaded
+  const PLACEHOLDERS = [
+    { title: 'Waiting for first upload…' },
+    { title: 'Your curiosity could be here' },
+    { title: 'Be the first archivist' },
+  ];
+
+  const displayDocs = docs.length > 0 ? docs : null;
 
   return (
-    <section className="py-14 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-3xl font-bold font-display bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+    <section className="pt-10 pb-4 px-0">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <h2 className="text-2xl font-bold font-display bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Recently Uploaded
           </h2>
           <div className="flex items-center gap-1.5">
@@ -65,14 +72,14 @@ function RecentlyUploaded({ onUnlockClick }: { onUnlockClick: () => void }) {
             <span className="text-xs text-muted-foreground font-body">Live</span>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mb-8">
-          Fresh curiosities from the community — unlock one and you might find something extraordinary
+        <p className="text-sm text-muted-foreground mb-6 px-1">
+          Fresh curiosities — unlock one and you might find something extraordinary
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-          {docs.map((doc, i) => (
+          {(displayDocs ?? PLACEHOLDERS).map((doc: any, i: number) => (
             <button
-              key={doc.id}
+              key={doc.id ?? i}
               onClick={onUnlockClick}
               className="group text-left tap-target focus:outline-none"
               style={{ transform: `rotate(${rotation[i]}deg)` }}
@@ -499,7 +506,6 @@ const Landing = () => {
             <p className="text-sm text-muted-foreground mb-5">Every rare scan = more discovery = more royalties</p>
             <button
               onClick={handleOpenCamera}
-
               className="inline-flex items-center justify-center px-8 py-3.5 text-sm font-semibold rounded-xl transition-all duration-200 hover:scale-[1.03]"
               style={{
                 background: 'linear-gradient(135deg, hsl(42 95% 55%) 0%, hsl(38 90% 48%) 100%)',
@@ -510,10 +516,12 @@ const Landing = () => {
               Start Scanning
             </button>
           </div>
+
+          {/* Recently Uploaded — sits directly below search */}
+          <RecentlyUploaded onUnlockClick={handleOpenCamera} />
+
         </div>
       </section>
-
-      <RecentlyUploaded onUnlockClick={handleOpenCamera} />
 
       <AmbientSound />
 
