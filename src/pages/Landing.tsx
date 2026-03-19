@@ -24,10 +24,11 @@ interface RecentDoc {
   created_at: string;
 }
 
-function RecentlyUploaded({ onUnlockClick }: { onUnlockClick: () => void }) {
-  const [docs, setDocs]         = useState<RecentDoc[]>([]);
+function RecentlyUploaded() {
+  const navigate = useNavigate();
+  const [docs, setDocs]           = useState<RecentDoc[]>([]);
   const [unlockGbp, setUnlockGbp] = useState<string>('...');
-  const [rotation]              = useState(() =>
+  const [rotation]                = useState(() =>
     Array.from({ length: 8 }, () => (Math.random() * 6 - 3).toFixed(1))
   );
 
@@ -80,9 +81,9 @@ function RecentlyUploaded({ onUnlockClick }: { onUnlockClick: () => void }) {
           {(displayDocs ?? PLACEHOLDERS).map((doc: any, i: number) => (
             <button
               key={doc.id ?? i}
-              onClick={onUnlockClick}
+              onClick={() => doc.id ? navigate('/vault') : undefined}
               className="group text-left tap-target focus:outline-none"
-              style={{ transform: `rotate(${rotation[i]}deg)` }}
+              style={{ transform: `rotate(${rotation[i]}deg)`, cursor: doc.id ? 'pointer' : 'default' }}
             >
               {/* Polaroid frame */}
               <div
@@ -115,16 +116,18 @@ function RecentlyUploaded({ onUnlockClick }: { onUnlockClick: () => void }) {
                     >
                       <Lock className="h-5 w-5" style={{ color: 'hsl(42 88% 60%)' }} />
                     </div>
-                    <span
-                      className="text-sm font-bold font-display px-3 py-1 rounded-sm"
-                      style={{
-                        background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
-                        color: 'hsl(30 25% 10%)',
-                        boxShadow: '0 2px 8px rgba(139,90,0,0.5)',
-                      }}
-                    >
-                      Unlock {unlockGbp}
-                    </span>
+                    {doc.id && (
+                      <span
+                        className="text-sm font-bold font-display px-3 py-1 rounded-sm"
+                        style={{
+                          background: 'linear-gradient(135deg, hsl(38 60% 45%) 0%, hsl(38 50% 35%) 100%)',
+                          color: 'hsl(30 25% 10%)',
+                          boxShadow: '0 2px 8px rgba(139,90,0,0.5)',
+                        }}
+                      >
+                        Unlock {unlockGbp}
+                      </span>
+                    )}
                   </div>
 
                   {/* New badge */}
@@ -518,7 +521,7 @@ const Landing = () => {
           </div>
 
           {/* Recently Uploaded — sits directly below search */}
-          <RecentlyUploaded onUnlockClick={handleOpenCamera} />
+          <RecentlyUploaded />
 
         </div>
       </section>
