@@ -32,57 +32,73 @@ const FEATURE_CARDS = [
 
 function FeatureCards() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const activeCard = openIdx !== null ? FEATURE_CARDS[openIdx] : null;
 
   return (
-    <div className="grid md:grid-cols-3 gap-4">
-      {FEATURE_CARDS.map((item, idx) => {
-        const isOpen = openIdx === idx;
-        return (
+    <>
+      {/* Tiles — identical to original, just tappable */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {FEATURE_CARDS.map((item, idx) => (
           <button
             key={idx}
-            onClick={() => setOpenIdx(isOpen ? null : idx)}
-            className="parchment-card p-6 hover-brass w-full transition-all duration-300 tap-target"
-            style={{
-              border: isOpen ? '1px solid hsl(42 88% 55% / 0.5)' : undefined,
-              boxShadow: isOpen ? '0 0 20px rgba(218,165,32,0.15)' : undefined,
-            }}
+            onClick={() => setOpenIdx(idx)}
+            className="parchment-card p-6 text-center hover-brass group w-full tap-target"
           >
-            {/* Always visible: icon, title, subtitle */}
             <item.icon
-              className="w-8 h-8 mx-auto mb-3"
+              className="w-8 h-8 mx-auto mb-3 group-hover:scale-110 transition-transform"
               style={{ color: 'hsl(42 95% 60%)' }}
             />
-            <h3 className="text-base font-bold font-display mb-1 text-primary text-center">
-              {item.title}
-            </h3>
-            <p className="text-sm text-muted-foreground text-center">{item.desc}</p>
-
-            {/* Hint when closed */}
-            {!isOpen && (
-              <p className="text-xs mt-3 text-center" style={{ color: 'hsl(42 88% 55% / 0.55)' }}>
-                tap to learn more
-              </p>
-            )}
-
-            {/* Synopsis — only rendered when open */}
-            {isOpen && (
-              <div
-                className="mt-4 pt-4 text-sm text-left leading-relaxed"
-                style={{
-                  borderTop: '1px solid hsl(42 88% 55% / 0.25)',
-                  color: 'hsl(30 20% 78%)',
-                }}
-              >
-                {item.synopsis}
-                <p className="text-xs mt-3 text-center" style={{ color: 'hsl(42 88% 55% / 0.55)' }}>
-                  tap to close
-                </p>
-              </div>
-            )}
+            <h3 className="text-base font-bold font-display mb-1 text-primary">{item.title}</h3>
+            <p className="text-sm text-muted-foreground">{item.desc}</p>
           </button>
-        );
-      })}
-    </div>
+        ))}
+      </div>
+
+      {/* Modal overlay — appears when a tile is tapped */}
+      {activeCard && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setOpenIdx(null)}
+        >
+          <div
+            className="parchment-card p-7 max-w-sm w-full text-center"
+            style={{
+              border: '1px solid hsl(42 88% 55% / 0.5)',
+              boxShadow: '0 0 40px rgba(218,165,32,0.2)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <activeCard.icon
+              className="w-10 h-10 mx-auto mb-4"
+              style={{ color: 'hsl(42 95% 60%)' }}
+            />
+            <h3 className="text-lg font-bold font-display mb-1 text-primary">{activeCard.title}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{activeCard.desc}</p>
+            <div
+              className="pt-4 text-sm leading-relaxed text-left"
+              style={{
+                borderTop: '1px solid hsl(42 88% 55% / 0.2)',
+                color: 'hsl(30 20% 78%)',
+              }}
+            >
+              {activeCard.synopsis}
+            </div>
+            <button
+              onClick={() => setOpenIdx(null)}
+              className="mt-5 text-xs font-display uppercase tracking-wider px-4 py-2 rounded-sm"
+              style={{
+                background: 'hsl(42 88% 55% / 0.15)',
+                border: '1px solid hsl(42 88% 55% / 0.3)',
+                color: 'hsl(42 88% 60%)',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
