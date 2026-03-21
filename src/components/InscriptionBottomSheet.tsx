@@ -1,36 +1,36 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
+import { toast } from "sonner";
 
 interface InscriptionBottomSheetProps {
   onClose: () => void;
-  onInscribe: (title: string, royaltyPercent: number) => void;
+  onInscribe: (title: string) => void;
+  feeSats?: number;
+  feeGbp?: string;
 }
 
-export const InscriptionBottomSheet = ({ onClose, onInscribe }: InscriptionBottomSheetProps) => {
+export const InscriptionBottomSheet = ({ onClose, onInscribe, feeSats, feeGbp }: InscriptionBottomSheetProps) => {
   const [title, setTitle] = useState("");
-  const [royaltyPercent, setRoyaltyPercent] = useState(5);
 
   const handleInscribe = () => {
     if (!title.trim()) {
-      alert("Please give your treasure a name");
+      toast.error("Please give your treasure a name");
       return;
     }
-    onInscribe(title, royaltyPercent);
+    onInscribe(title);
   };
 
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] animate-fade-in"
         onClick={onClose}
       />
-      
+
       {/* Bottom Sheet */}
-      <div 
+      <div
         className="fixed bottom-0 left-0 right-0 z-[91] animate-slide-up"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom)',
@@ -42,7 +42,7 @@ export const InscriptionBottomSheet = ({ onClose, onInscribe }: InscriptionBotto
           <div className="flex justify-center py-3">
             <div className="w-12 h-1 rounded-full opacity-40" style={{ backgroundColor: 'hsl(38 60% 45%)' }} />
           </div>
-          
+
           {/* Close button */}
           <button
             onClick={onClose}
@@ -72,27 +72,19 @@ export const InscriptionBottomSheet = ({ onClose, onInscribe }: InscriptionBotto
               />
             </div>
 
-            {/* Royalty Slider */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-semibold font-display" style={{ color: 'hsl(38 60% 45%)' }}>
-                  Royalty per View
-                </label>
-                <span className="text-2xl font-bold font-display text-primary">
-                  {royaltyPercent}%
-                </span>
-              </div>
-              <Slider
-                value={[royaltyPercent]}
-                onValueChange={(value) => setRoyaltyPercent(value[0])}
-                min={1}
-                max={20}
-                step={1}
-                className="mb-2"
-              />
-              <p className="text-xs text-muted-foreground text-center">
-                Higher royalty = more earnings per page view
+            {/* Split info */}
+            <div
+              className="mb-6 p-4 rounded-sm text-center text-xs font-body text-muted-foreground space-y-1"
+              style={{
+                background: 'linear-gradient(135deg, rgba(139, 90, 0, 0.08) 0%, rgba(218, 165, 32, 0.04) 100%)',
+                border: '1px solid hsl(38 35% 35% / 0.25)',
+              }}
+            >
+              <p className="font-semibold font-display text-sm" style={{ color: 'hsl(38 60% 45%)' }}>
+                Every 3p unlock is split on-chain — forever
               </p>
+              <p>80% to you · 10% to curIosities · 10% to Gorilla Pool</p>
+              <p className="opacity-70">This split is immutable. No one can change it.</p>
             </div>
 
             {/* Inscribe Button */}
@@ -106,11 +98,13 @@ export const InscriptionBottomSheet = ({ onClose, onInscribe }: InscriptionBotto
                 color: 'hsl(30 25% 10%)',
               }}
             >
-              Inscribe Forever – Costs &lt; 1 ¢
+              {feeSats
+                ? `Inscribe Forever — ${feeSats.toLocaleString()} sats${feeGbp ? ` (${feeGbp})` : ''}`
+                : 'Inscribe Forever'}
             </button>
-            
+
             <p className="text-xs text-center text-muted-foreground mt-3">
-              🎉 First 10 inscriptions are free!
+              Fee scales with document size · Paid from your inscription balance
             </p>
           </div>
         </div>

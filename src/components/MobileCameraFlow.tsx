@@ -3,6 +3,7 @@ import { X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useTroveStore } from "@/store/useTroveStore";
 import { InscriptionBottomSheet } from "./InscriptionBottomSheet";
@@ -12,6 +13,7 @@ import { ProvenanceBadge } from "./ProvenanceBadge";
 import { haptics } from "@/utils/haptics";
 import { analyzeProvenance } from "@/utils/provenanceAnalysis";
 import { embedWatermark } from "@/utils/watermark";
+import { getBsvGbpPrice, calculateInscriptionFeeSats, estimateSizeFromDataUrl, satsToGbp } from "@/utils/bsvPrice";
 
 interface MobileCameraFlowProps {
   onClose: () => void;
@@ -38,6 +40,8 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
   const [showDeclaration, setShowDeclaration] = useState(false);
   const [pendingInscription, setPendingInscription] = useState<{ title: string; royaltyPercent: number } | null>(null);
   const [cameraError, setCameraError] = useState<'denied' | 'unavailable' | null>(null);
+  const [inscriptionFeeSats, setInscriptionFeeSats] = useState<number | undefined>(undefined);
+  const [inscriptionFeeGbp, setInscriptionFeeGbp] = useState<string | undefined>(undefined);
   const [declarations, setDeclarations] = useState({
     ownsRights: false,
     noPersonalData: false,
@@ -176,7 +180,15 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
       
       // Store original
       setOriginalImage(imageData);
-      
+
+      // Calculate inscription fee from image size
+      const estimatedBytes = estimateSizeFromDataUrl(imageData);
+      const feeSats = calculateInscriptionFeeSats(estimatedBytes);
+      setInscriptionFeeSats(feeSats);
+      getBsvGbpPrice().then(price => {
+        setInscriptionFeeGbp(satsToGbp(feeSats, price));
+      });
+
       // Apply vintage filter
       const filtered = await applyVintageFilter(imageData);
       setFilteredImage(filtered);
@@ -223,10 +235,10 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
   };
 
   // Called by InscriptionBottomSheet — shows declaration gate before proceeding
-  const requestInscription = (title: string, royaltyPercent: number) => {
+  const requestInscription = (title: string) => {
     setShowBottomSheet(false);
     setDeclarations({ ownsRights: false, noPersonalData: false, understoodPermanence: false, acceptsResponsibility: false });
-    setPendingInscription({ title, royaltyPercent });
+    setPendingInscription({ title, royaltyPercent: 0 });
     setShowDeclaration(true);
   };
 
@@ -238,7 +250,7 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
     inscribeDocument(pendingInscription.title, pendingInscription.royaltyPercent);
   };
 
-  const inscribeDocument = async (title: string, royaltyPercent: number) => {
+  const inscribeDocument = async (title: string, _royaltyPercent: number) => {
     if (!capturedImage) return;
 
     setIsInscribing(true);
@@ -290,7 +302,7 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
           image_url: publicUrl,
           rarity_score: provenanceScore || 75,
           usefulness_score: 70,
-          price_per_page: royaltyPercent / 100,
+          price_per_page: 0.03, // fixed 3p unlock price
           total_pages: 1,
           status: 'inscribed',
           inscription_txid: mockTxid,
@@ -311,7 +323,7 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
       haptics.success();
     } catch (error) {
       console.error("Inscription error:", error);
-      alert("Failed to inscribe document. Please try again.");
+      toast.error("Failed to inscribe document. Please try again.");
       setIsInscribing(false);
     }
   };
@@ -331,7 +343,7 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        alert("Please sign in to purchase forensic certificate");
+        toast.error("Please sign in to get a forensic certificate");
         navigate("/auth");
         return;
       }
@@ -360,12 +372,15 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      alert(`✅ Forensic Certificate Generated!\n\n2000 sats paid to treasury.\nYour detailed certificate has been downloaded.`);
+      toast.success("Forensic Certificate Generated", {
+        description: "2000 sats paid to treasury. Your certificate has been downloaded.",
+        duration: 6000,
+      });
       
       haptics.success();
     } catch (error) {
       console.error("Certificate generation error:", error);
-      alert("Failed to generate certificate. Please try again.");
+      toast.error("Failed to generate certificate. Please try again.");
     } finally {
       setIsGeneratingCertificate(false);
     }
@@ -391,6 +406,8 @@ export const MobileCameraFlow = ({ onClose, onError, onSuccess }: MobileCameraFl
         <InscriptionBottomSheet
           onClose={() => setShowBottomSheet(false)}
           onInscribe={requestInscription}
+          feeSats={inscriptionFeeSats}
+          feeGbp={inscriptionFeeGbp}
         />
       )}
 

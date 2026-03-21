@@ -7,7 +7,7 @@ import { CoinRainAnimation } from "@/components/CoinRainAnimation";
 import { playCashRegisterSound } from "@/utils/cashRegisterSound";
 import { useHandCash } from "@/contexts/HandCashContext";
 import { PaymentDeepLink } from "@/components/PaymentDeepLink";
-import { getBsvGbpPrice, satsToGbp } from "@/utils/bsvPrice";
+import { getBsvGbpPrice, gbpToSats, satsToGbp } from "@/utils/bsvPrice";
 
 interface PaywallOverlayProps {
   document: {
@@ -28,9 +28,9 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
   const [showCoinRain, setShowCoinRain] = useState(false);
   const [isLifetimeUser, setIsLifetimeUser] = useState(false);
   const [gbpPrice, setGbpPrice] = useState<string | null>(null);
-  const baseUnlockPrice = 300; // satoshis
-  const unlockPrice = isLifetimeUser ? 150 : baseUnlockPrice; // 50% discount for lifetime users
-  const bsvPrice = unlockPrice / 100000000; // Convert sats to BSV
+  const [baseSats, setBaseSats] = useState<number>(107143); // ~3p at £28/BSV fallback
+  const unlockPrice = isLifetimeUser ? Math.round(baseSats / 2) : baseSats;
+  const bsvPrice = unlockPrice / 100_000_000;
 
   useEffect(() => {
     const checkLifetimeStatus = async () => {
@@ -53,9 +53,12 @@ export const PaywallOverlay = ({ document, onClose, onUnlocked }: PaywallOverlay
 
   useEffect(() => {
     getBsvGbpPrice().then(price => {
-      setGbpPrice(satsToGbp(unlockPrice, price));
+      const sats = gbpToSats(0.03, price); // 3p unlock price
+      setBaseSats(sats);
+      const effectiveSats = isLifetimeUser ? Math.round(sats / 2) : sats;
+      setGbpPrice(satsToGbp(effectiveSats, price));
     });
-  }, [unlockPrice]);
+  }, [isLifetimeUser]);
 
   const handleUnlock = async () => {
     if (!isConnected) {

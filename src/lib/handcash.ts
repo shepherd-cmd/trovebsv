@@ -11,13 +11,13 @@ export const OWNER_SHARE = 0.80;      // 80% to document owner — their history
 export const PLATFORM_SHARE = 0.10;   // 10% to Trove business treasury
 export const GORILLA_POOL_SHARE = 0.10; // 10% to Gorilla Pool for indexing
 
-// Entry fee in GBP
+// Entry fee in GBP (one-time, splits 50/50: £2 to platform, £2 → BSV sats for user)
 export const ENTRY_FEE_GBP = 3.99;
 
-// Inscription cost per upload in GBP (fiat-fixed, platform converts to sats internally)
-export const INSCRIPTION_FEE_GBP = 0.79;
+// Top-up price per additional inscription credit
+export const TOPUP_FEE_GBP = 0.79;
 
-// Credits granted on entry fee purchase
+// Inscription credits granted on entry fee purchase (placeholder until Stripe + BSV wallet live)
 export const ENTRY_CREDITS = 5;
 
 /**

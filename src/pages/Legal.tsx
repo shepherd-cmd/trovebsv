@@ -95,7 +95,7 @@ const Legal = () => {
                 <li>Your electronic or physical signature</li>
               </ul>
               <p className="mt-3">
-                Send notices to: <strong>legal@trove.app</strong> — subject line: <em>DMCA Takedown Notice</em>
+                Send notices to: <strong>legal@curiosities.app</strong> — subject line: <em>DMCA Takedown Notice</em>
               </p>
               <p className="text-sm text-muted-foreground">
                 We aim to respond within 48 hours and will delist the content promptly upon receipt of a valid notice.
@@ -111,7 +111,7 @@ const Legal = () => {
                 Trove is committed to compliance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018. We collect only the data necessary to operate the platform. We do not sell personal data to third parties.
               </p>
               <p className="leading-relaxed mt-3">
-                If you believe a document displayed on Trove contains your personal data without your consent, please contact <strong>legal@trove.app</strong> with the subject line <em>GDPR Data Subject Request</em>. We will investigate and delist the content within 72 hours where warranted.
+                If you believe a document displayed on Trove contains your personal data without your consent, please contact <strong>legal@curiosities.app</strong> with the subject line <em>GDPR Data Subject Request</em>. We will investigate and delist the content within 72 hours where warranted.
               </p>
             </div>
           </section>
@@ -143,7 +143,7 @@ const Legal = () => {
                 All legal correspondence, takedown notices, and content reports should be sent to:
               </p>
               <p className="mt-3 text-lg font-bold" style={{ color: 'hsl(42 88% 55%)' }}>
-                legal@trove.app
+                legal@curiosities.app
               </p>
               <p className="mt-4 text-sm text-muted-foreground">
                 {/* TODO: Add registered company name and address once incorporated */}

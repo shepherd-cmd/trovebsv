@@ -6,11 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Credit packages available for purchase
+// Credit packages available for purchase.
+// "credits" here represents inscription allowances (one per document upload).
+// On Stripe integration: the entry fee splits 50/50 — £2 to platform, £2 converted
+// to BSV sats at live rate and credited to the user's inscription balance.
+// Until Stripe + BSV wallet are wired, credits are granted as a count.
 const CREDIT_PACKAGES = {
-  starter: { credits: 5,  priceGbp: 3.99, label: 'Starter' },
-  topup:   { credits: 10, priceGbp: 3.99, label: 'Top-Up'  },
-  bundle:  { credits: 25, priceGbp: 7.99, label: 'Bundle'  },
+  entry:  { credits: 5,  priceGbp: 3.99, label: 'Entry Fee'  }, // one-time entry
+  topup:  { credits: 1,  priceGbp: 0.79, label: 'Top-Up'     }, // single credit
 };
 
 serve(async (req) => {
