@@ -1,0 +1,160 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { imageUrl, category, title, description } = await req.json();
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    console.log('Analyzing document:', { title, category });
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert historian and archivist analyzing documents for historical significance and rarity.
+Evaluate documents based on:
+- Historical importance and uniqueness (rarity score 1-100)
+- Practical usefulness and educational value (usefulness score 1-100)
+- Potential market value per page in BSV satoshis
+
+Be objective but generous for genuinely rare or useful documents. Common items should score 20-40, uncommon 50-70, rare 80-90, exceptional 95-100.
+
+You also write teaser copy — short, irresistible 1-2 sentence hooks designed to make a complete stranger desperate to unlock and read this document.
+The teaser must be:
+- 1-2 sentences maximum
+- Human and emotionally compelling — not academic
+- Written like the opening line of a great short story
+- Never reveal the full content — hint at it, let imagination do the work
+- Make the reader feel they would regret not opening it
+- Speak to universal human experiences: love, loss, war, survival, family, secrets`
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `Analyze this historical document for preservation on the BSV blockchain:
+
+Title: ${title}
+Category: ${category}
+Description: ${description || 'No description provided'}
+
+Evaluate:
+1. Historical rarity and uniqueness (1-100)
+2. Educational and research value (1-100)
+3. Market value per page in BSV satoshis
+4. Estimated total pages in this document
+5. A short teaser to entice strangers to unlock it
+
+Be generous for genuinely rare documents. Common items: 20-40, Uncommon: 50-70, Rare: 80-90, Exceptional: 95-100.`
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageUrl
+                }
+              }
+            ]
+          }
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "analyze_document",
+              description: "Return structured analysis of the document",
+              parameters: {
+                type: "object",
+                properties: {
+                  rarity_score: {
+                    type: "integer",
+                    minimum: 1,
+                    maximum: 100,
+                    description: "How rare and unique this document is historically"
+                  },
+                  usefulness_score: {
+                    type: "integer",
+                    minimum: 1,
+                    maximum: 100,
+                    description: "How useful and valuable this document is for research/education"
+                  },
+                  price_per_page: {
+                    type: "number",
+                    description: "Suggested price per page in BSV satoshis (0.00000001 to 1.0)"
+                  },
+                  analysis: {
+                    type: "string",
+                    description: "Detailed explanation of the scores and historical significance"
+                  },
+                  estimated_pages: {
+                    type: "integer",
+                    description: "Estimated number of pages in this document"
+                  },
+                  teaser: {
+                    type: "string",
+                    description: "Short 1-2 sentence teaser written to entice a stranger to unlock the document. Hint at the content without revealing it. Human, surprising, and impossible to ignore."
+                  }
+                },
+                required: ["rarity_score", "usefulness_score", "price_per_page", "analysis", "estimated_pages", "teaser"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "analyze_document" } }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI Gateway error:', response.status, errorText);
+      throw new Error(`AI Gateway error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+
+    if (!toolCall) {
+      throw new Error('No tool call in response');
+    }
+
+    const result = JSON.parse(toolCall.function.arguments);
+    console.log('Analysis complete:', result);
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('Error in analyze-document:', error);
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+  }
+});

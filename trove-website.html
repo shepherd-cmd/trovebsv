@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>curIosities — The World's Digital Cabinet of Curiosities</title>
+  <meta name="description" content="200 years of history is scattered in attics across the world. curIosities turns it into an indestructible, AI-indexed archive — and pays you forever." />
+  <meta property="og:title" content="curIosities — The World's Digital Cabinet of Curiosities" />
+  <meta property="og:description" content="Scan. Inscribe. Earn forever. The world's first crowdsourced blockchain archive." />
+  <meta property="og:type" content="website" />
+
+  <!-- Fonts — matching the app -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&family=Cinzel:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:         hsl(20 15% 5%);
+      --bg-card:    hsl(222 16% 9% / 0.85);
+      --bg-card-lt: hsl(222 14% 11% / 0.9);
+      --fg:         hsl(40 20% 92%);
+      --fg-muted:   hsl(222 10% 55%);
+      --gold:       hsl(42 95% 60%);
+      --gold-dim:   hsl(38 60% 45%);
+      --gold-glow:  hsl(42 95% 60% / 0.35);
+      --teal:       hsl(195 75% 52%);
+      --border:     hsl(222 14% 20%);
+      --radius:     0.625rem;
+    }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; line-height: 1.15; }
+    .font-display { font-family: 'Playfair Display', Georgia, serif; }
+    .font-title   { font-family: 'Cinzel', Georgia, serif; }
+    .font-body    { font-family: 'Inter', system-ui, sans-serif; }
+    .font-hand    { font-family: 'Caveat', cursive; }
+
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ─────────────────────────────── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 100px 0; position: relative; }
+
+    /* ── Glass cards ────────────────────────── */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid hsl(222 14% 20% / 0.8);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.45);
+    }
+    .glass-card-lt {
+      background: var(--bg-card-lt);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid hsl(222 12% 22% / 0.7);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.38);
+    }
+
+    /* ── Gold text glow ─────────────────────── */
+    .brass-glow {
+      color: var(--gold);
+      text-shadow: 0 0 20px var(--gold-glow);
+    }
+
+    /* ── Buttons ─────────────────────────────── */
+    /* ══ ANTIQUE GOLD ORB BORDER ══ */
+    @property --a {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes orbSpin { to { --a: 360deg; } }
+
+    .orb-ring {
+      position: relative !important;
+      overflow: visible !important;
+      border: none !important;
+      box-shadow: none !important;
+      text-decoration: none;
+    }
+    .orb-ring::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      padding: 2px;
+      background: conic-gradient(
+        from var(--a, 0deg),
+        hsl(38 40% 20% / 0.55)   0deg,
+        hsl(38 40% 20% / 0.55) 255deg,
+        hsl(22 75% 35% / 0.65)  275deg,
+        hsl(28 82% 43% / 0.78)  295deg,
+        hsl(34 88% 50% / 0.88)  312deg,
+        hsl(40 92% 60% / 0.96)  330deg,
+        hsl(48 100% 84% / 1.0)  346deg,
+        hsl(42 90% 65% / 0.85)  354deg,
+        hsl(38 40% 20% / 0.55)  360deg
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: orbSpin 7s linear infinite;
+      filter: blur(0.4px);
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* stagger step cards */
+    .step-card:nth-child(2)::before { animation-delay: -2.8s; }
+    .step-card:nth-child(3)::before { animation-delay: -5.6s; }
+
+    /* <a> elements don't reliably pass border-radius down to ::before — hardcode it */
+    a.orb-ring { display: inline-flex; position: relative !important; }
+    a.orb-ring::before { border-radius: 12px; }
+
+    .btn-gold {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 16px 36px; font-family: 'Playfair Display', serif;
+      font-weight: 700; font-size: 1rem; border: none; border-radius: 12px;
+      cursor: pointer; transition: transform 0.2s, color 0.2s;
+      background: linear-gradient(160deg, hsl(222 18% 12%), hsl(222 16% 9%));
+      color: hsl(42 90% 72%);
+    }
+    .btn-gold:hover { transform: scale(1.03); color: hsl(45 100% 82%); text-decoration: none; }
+
+    .btn-outline {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 16px 36px; font-family: 'Playfair Display', serif;
+      font-weight: 600; font-size: 1rem; border-radius: 12px;
+      cursor: pointer; transition: color 0.2s;
+      background: transparent;
+      color: hsl(38 50% 58%);
+    }
+    .btn-outline:hover { color: hsl(42 80% 72%); text-decoration: none; }
+
+    /* ── Particles ───────────────────────────── */
+    .particles {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(80px);
+      animation: orb-drift 20s ease-in-out infinite alternate;
+    }
+    .orb-1 {
+      width: 40vw; height: 40vw; top: 10%; left: 15%;
+      background: radial-gradient(circle, hsl(42 95% 60% / 0.06), transparent 65%);
+    }
+    .orb-2 {
+      width: 35vw; height: 35vw; bottom: 20%; right: 10%;
+      background: radial-gradient(circle, hsl(195 75% 52% / 0.04), transparent 65%);
+      animation-delay: -10s;
+    }
+    .orb-3 {
+      width: 25vw; height: 25vw; top: 55%; left: 60%;
+      background: radial-gradient(circle, hsl(38 80% 55% / 0.05), transparent 60%);
+      animation-delay: -5s;
+    }
+    @keyframes orb-drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(3vw, -2vw) scale(1.08); }
+      100% { transform: translate(-2vw, 3vw) scale(0.95); }
+    }
+
+    /* ── Specific sections ──────────────────── */
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: hsl(20 15% 5% / 0.88);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid hsl(222 14% 18% / 0.5);
+    }
+    nav .inner {
+      max-width: 1080px; margin: 0 auto; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    nav .logo { font-family: 'Cinzel', serif; font-size: 1.35rem; font-weight: 700; color: var(--gold); letter-spacing: 2px; }
+    nav .links { display: flex; gap: 28px; align-items: center; }
+    nav .links a { font-size: 0.875rem; color: var(--fg-muted); font-weight: 500; transition: color 0.2s; }
+    nav .links a:hover { color: var(--gold); text-decoration: none; }
+    nav .links a.active { color: var(--gold); }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding-top: 80px; text-align: center;
+    }
+    .hero .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 18px; border-radius: 100px; font-size: 0.75rem;
+      font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+      background: hsl(42 95% 60% / 0.1); border: 1px solid hsl(42 95% 60% / 0.25);
+      color: hsl(42 95% 65%); margin-bottom: 28px;
+    }
+    .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; margin-bottom: 20px; }
+    .hero h1 span { color: var(--gold); text-shadow: 0 0 60px hsl(42 95% 60% / 0.2); }
+    .hero p { font-size: 1.15rem; color: var(--fg-muted); max-width: 600px; margin: 0 auto 36px; }
+    .hero .buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; justify-content: center; gap: 48px; margin-top: 48px; flex-wrap: wrap;
+    }
+    .stats-bar .stat { text-align: center; }
+    .stats-bar .stat .val { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--gold); }
+    .stats-bar .stat .lbl { font-size: 0.75rem; color: var(--fg-muted); }
+
+    /* Problem section */
+    .problem { background: linear-gradient(180deg, transparent, hsl(222 16% 6% / 0.5), transparent); }
+    .problem h2 {
+      font-size: clamp(1.6rem, 4vw, 2.5rem); text-align: center; margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--gold), hsl(40 20% 85%));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .problem .body { max-width: 680px; margin: 0 auto; text-align: center; color: var(--fg-muted); font-size: 1.05rem; }
+    .problem .body strong { color: hsl(40 20% 82%); font-weight: 600; }
+    .problem .punchline { text-align: center; margin-top: 32px; font-family: 'Playfair Display', serif; font-size: 1.5rem; }
+
+    /* How it works */
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 48px; }
+    .step-card { padding: 36px 28px; text-align: center; position: relative; transition: transform 0.2s; overflow: visible !important; border: none !important; background: linear-gradient(160deg, hsl(222 18% 10%), hsl(222 16% 8%)) !important; }
+    .step-card:hover { transform: translateY(-4px); }
+    .step-card .emoji { font-size: 3rem; margin-bottom: 12px; }
+    .step-card h3 { font-size: 1.35rem; margin-bottom: 6px; color: var(--gold); }
+    .step-card p { color: var(--fg-muted); font-size: 0.95rem; }
+
+    /* Economics */
+    .econ-hero {
+      text-align: center; padding: 48px 32px; margin-bottom: 48px;
+      border: 1px solid hsl(42 88% 55% / 0.2);
+      background: linear-gradient(135deg, rgba(20,14,8,0.97), rgba(38,26,10,0.92));
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(218,165,32,0.12);
+    }
+    .econ-hero .big { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; }
+    .split-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 40px 0; }
+    .split-card { padding: 28px 20px; text-align: center; border-radius: var(--radius); }
+    .split-card .pct { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 800; }
+    .split-card .who { font-size: 0.9rem; font-weight: 600; margin: 4px 0 8px; }
+    .split-card .why { font-size: 0.8rem; color: var(--fg-muted); }
+
+    /* Revenue table */
+    .rev-table { width: 100%; border-collapse: collapse; margin: 32px 0; }
+    .rev-table th { font-family: 'Playfair Display', serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold-dim); padding: 10px 16px; text-align: right; border-bottom: 1px solid hsl(222 14% 18%); }
+    .rev-table th:first-child { text-align: left; }
+    .rev-table td { padding: 12px 16px; text-align: right; font-size: 0.9rem; border-bottom: 1px solid hsl(222 14% 14%); color: var(--fg-muted); }
+    .rev-table td:first-child { text-align: left; color: var(--fg); font-weight: 500; }
+    .rev-table .highlight td { color: var(--gold); font-weight: 700; font-size: 1rem; }
+    .rev-table .highlight td:first-child { color: var(--gold); }
+
+    /* Vision / AI section */
+    .vision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+    .vision-card { padding: 32px 24px; }
+    .vision-card .icon { font-size: 2rem; margin-bottom: 12px; }
+    .vision-card h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--gold); }
+    .vision-card p { color: var(--fg-muted); font-size: 0.9rem; }
+
+    /* The pitch / values */
+    .values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 40px; }
+    .value-item { display: flex; gap: 14px; padding: 20px; }
+    .value-item .marker { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--gold); flex-shrink: 0; line-height: 1; }
+    .value-item h4 { font-size: 1rem; margin-bottom: 4px; color: var(--fg); }
+    .value-item p { font-size: 0.85rem; color: var(--fg-muted); }
+
+    /* Quote */
+    .quote-section { text-align: center; padding: 80px 24px; }
+    .quote-section blockquote {
+      font-family: 'Caveat', cursive; font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      color: hsl(38 60% 78%); max-width: 700px; margin: 0 auto; line-height: 1.5;
+    }
+
+    /* CTA */
+    .cta-section { text-align: center; padding: 100px 24px; }
+    .cta-section h2 { font-size: clamp(2rem, 4.5vw, 3rem); margin-bottom: 16px; }
+    .cta-section p { color: var(--fg-muted); margin-bottom: 36px; max-width: 500px; margin-left: auto; margin-right: auto; font-size: 1.05rem; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid hsl(222 14% 14%);
+      padding: 40px 24px; text-align: center; color: var(--fg-muted); font-size: 0.8rem;
+    }
+    footer .logo-foot { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--gold-dim); letter-spacing: 2px; margin-bottom: 8px; }
+    footer a { color: var(--fg-muted); }
+
+    /* BSV badge */
+    .bsv-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 6px; font-size: 0.7rem;
+      font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      background: hsl(42 95% 60% / 0.08); border: 1px solid hsl(42 95% 60% / 0.2);
+      color: hsl(42 95% 65%);
+    }
+
+    /* Separator */
+    .sep { height: 1px; background: linear-gradient(90deg, transparent, hsl(42 88% 55% / 0.2), transparent); margin: 0 auto; max-width: 400px; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      section { padding: 64px 0; }
+      .split-grid { grid-template-columns: 1fr; }
+      .stats-bar { gap: 24px; }
+      nav .links { gap: 16px; }
+      .rev-table { font-size: 0.8rem; }
+      .rev-table th, .rev-table td { padding: 8px 10px; }
+    }
+
+    /* Relative z for content above particles */
+    section .container { position: relative; z-index: 1; }
+
+    /* curIosities SVG logo in nav */
+    nav .logo { display: flex; align-items: center; }
+    nav .logo svg { overflow: visible; display: block; }
+
+    /* Cabinet image in hero */
+    .cabinet-frame {
+      margin: 36px auto 0;
+      max-width: 280px;
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px hsl(42 88% 55% / 0.25),
+        0 0 40px hsl(42 88% 55% / 0.15),
+        0 24px 64px rgba(0,0,0,0.7);
+    }
+    .cabinet-frame img {
+      width: 100%;
+      display: block;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Particle orbs -->
+  <div class="particles">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Nav -->
+  <nav>
+    <div class="inner">
+      <div class="logo">
+        <svg width="195" height="30" viewBox="0 0 195 30" overflow="visible">
+          <defs>
+            <linearGradient id="gn" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#5c3e10"/>
+              <stop offset="20%"  stop-color="#a87428"/>
+              <stop offset="45%"  stop-color="#c09035"/>
+              <stop offset="70%"  stop-color="#7a5520"/>
+              <stop offset="100%" stop-color="#8a6220"/>
+            </linearGradient>
+            <filter id="fn" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="b1"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b2"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="8"   result="b3"/>
+              <feMerge><feMergeNode in="b3"/><feMergeNode in="b2"/><feMergeNode in="b1"/></feMerge>
+            </filter>
+          </defs>
+          <text x="2" y="22" font-family="'Playfair Display',Georgia,serif" font-size="19" font-weight="800" fill="none" filter="url(#fn)">
+            <tspan>cur</tspan><tspan fill="#18d4b0" font-size="24">io</tspan><tspan>sities</tspan>
+          </text>
+          <text x="2" y="22" font-family="'Playfair Display',Georgia,serif" font-size="19" font-weight="800" fill="url(#gn)">
+            cur<tspan font-size="24">io</tspan>sities
+          </text>
+        </svg>
+      </div>
+      <div class="links">
+        <a href="#problem">Why</a>
+        <a href="#how">How</a>
+        <a href="#economics">Earn</a>
+        <a href="#vision">Vision</a>
+        <a href="#living">Living History</a>
+        <a href="#values">Values</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="eyebrow">Bitcoin SV · Perpetual Royalties · AI-Indexed</div>
+
+      <!-- Hero logo — large SVG with candlelight glow -->
+      <div style="display:flex; justify-content:center; margin-bottom:24px;">
+        <svg width="620" height="90" viewBox="0 0 620 90" overflow="visible" style="max-width:92vw;">
+          <defs>
+            <linearGradient id="gh" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#5c3e10"/>
+              <stop offset="12%"  stop-color="#a87428"/>
+              <stop offset="25%"  stop-color="#614215"/>
+              <stop offset="40%"  stop-color="#c09035"/>
+              <stop offset="55%"  stop-color="#7a5520"/>
+              <stop offset="68%"  stop-color="#b08030"/>
+              <stop offset="82%"  stop-color="#4e3210"/>
+              <stop offset="100%" stop-color="#9e7428"/>
+            </linearGradient>
+            <filter id="fh" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="b1"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="4"   result="b2"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="9"   result="b3"/>
+              <feMerge><feMergeNode in="b3"/><feMergeNode in="b2"/><feMergeNode in="b1"/></feMerge>
+            </filter>
+          </defs>
+          <text x="310" y="68" text-anchor="middle" font-family="'Playfair Display',Georgia,serif" font-size="56" font-weight="800" fill="none" filter="url(#fh)">
+            <tspan>cur</tspan><tspan fill="#18d4b0" font-size="72">io</tspan><tspan>sities</tspan>
+          </text>
+          <text x="310" y="68" text-anchor="middle" font-family="'Playfair Display',Georgia,serif" font-size="56" font-weight="800" fill="url(#gh)">
+            cur<tspan font-size="72">io</tspan>sities
+          </text>
+        </svg>
+      </div>
+
+      <h1 style="font-size:clamp(1.5rem,3.5vw,2.4rem); margin-bottom:14px;">The world's digital <span>Cabinet of Curiosities.</span></h1>
+      <p>200 years of irreplaceable data is scattered in attics, shoeboxes and drawers across the world. Most of it will be lost the day the last person who remembers it is gone. curIosities changes that.</p>
+
+      <!-- Cabinet showcase image -->
+      <div class="cabinet-frame">
+        <img src="curiosities-cabinet.jpg" alt="curIosities — The digital Cabinet of Curiosities" />
+      </div>
+
+      <div class="buttons" style="margin-top:36px;">
+        <a href="#how" class="btn-gold orb-ring">See how it works</a>
+        <a href="#economics" class="btn-outline orb-ring">The economics</a>
+      </div>
+      <div class="stats-bar">
+        <div class="stat"><div class="val">80%</div><div class="lbl">to uploaders</div></div>
+        <div class="stat"><div class="val">BSV</div><div class="lbl">blockchain</div></div>
+        <div class="stat"><div class="val">Forever</div><div class="lbl">royalties</div></div>
+        <div class="stat"><div class="val">AI</div><div class="lbl">indexed</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem -->
+  <section class="problem" id="problem">
+    <div class="container">
+      <h2>95% of documents that shaped the 20th century are still in ordinary homes</h2>
+      <div class="body">
+        <p>D-Day maps. Resistance letters. Factory ledgers. Hand-drawn plans. The only surviving photos of forgotten regiments. Love letters from trenches. Ration books with every counterfoil intact.</p>
+        <p style="margin-top:16px"><strong>Nobody is digitising this. Nobody is paying for it — and every year, more of it vanishes forever.</strong></p>
+        <p style="margin-top:16px">The big platforms don't care — they want your selfies and your data, not your nan's war letters. Archives and museums can't scale, and the people who own this history don't even know it has value.</p>
+      </div>
+      <p class="punchline brass-glow">curIosities turns every attic into an archive — and every upload into income.</p>
+    </div>
+  </section>
+
+  <div class="sep"></div>
+
+  <!-- How it works -->
+  <section id="how">
+    <div class="container">
+      <h2 style="text-align:center; font-size:clamp(1.8rem,4vw,2.5rem); background:linear-gradient(135deg,var(--gold),hsl(40 20% 85%)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+        The magic in 60 seconds
+      </h2>
+      <div class="how-grid">
+        <div class="step-card glass-card-lt orb-ring">
+          <div class="emoji">📦</div>
+          <h3>Step 1: Find</h3>
+          <p>Dusty box in the loft. A drawer nobody's opened in 30 years. Your grandad's wartime trunk. That's where the treasure is.</p>
+        </div>
+        <div class="step-card glass-card-lt orb-ring">
+          <div class="emoji">📱</div>
+          <h3>Step 2: Scan</h3>
+          <p>Open curIosities on your phone. Point. Click. Our AI analyses rarity, estimates age, detects manipulation, and writes a teaser to hook the world.</p>
+        </div>
+        <div class="step-card glass-card-lt orb-ring">
+          <div class="emoji">💎</div>
+          <h3>Step 3: Own forever</h3>
+          <p>One tap inscribes your document on the BSV blockchain. Immutable. Timestamped. Yours. It can never be altered, deleted, or stolen.</p>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:48px;">
+        <p style="color:var(--fg-muted); font-size:1rem; margin-bottom:12px;">From that moment on, every time anyone unlocks your document — a historian, a school, a documentary maker, an AI — you get paid. Automatically. Forever.</p>
+        <span class="bsv-badge">Powered by Bitcoin SV</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="sep"></div>
+
+  <!-- Economics -->
+  <section id="economics">
+    <div class="container">
+      <h2 style="text-align:center; font-size:clamp(1.8rem,4vw,2.5rem); background:linear-gradient(135deg,var(--gold),hsl(40 20% 85%)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:48px;">
+        How you earn
+      </h2>
+
+      <!-- 80/10/10 -->
+      <div class="econ-hero">
+        <p style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.15em; color:var(--fg-muted); margin-bottom:8px;">Every unlock, every time</p>
+        <div class="big brass-glow">80 / 10 / 10</div>
+        <p style="color:var(--fg-muted); margin-top:12px; font-size:0.95rem;">Eighty percent of every penny goes directly to the uploader. Ten percent funds the app. Ten percent funds Gorilla Pool indexing.</p>
+      </div>
+
+      <div class="split-grid">
+        <div class="split-card glass-card-lt">
+          <div class="pct" style="color:hsl(38 90% 58%);">80%</div>
+          <div class="who">You</div>
+          <div class="why">Your history, your reward. Royalties flow to your wallet instantly, on every single unlock, for the lifetime of the blockchain.</div>
+        </div>
+        <div class="split-card glass-card-lt">
+          <div class="pct" style="color:var(--gold);">10%</div>
+          <div class="who">curIosities</div>
+          <div class="why">Funds the app, the AI analysis, and the infrastructure. No subscriptions, no ads, no hidden fees. Just a fair cut.</div>
+        </div>
+        <div class="split-card glass-card-lt">
+          <div class="pct" style="color:var(--teal);">10%</div>
+          <div class="who">Gorilla Pool</div>
+          <div class="why">Indexes every document for search and AI discoverability. The more discoverable your upload, the more you earn.</div>
+        </div>
+      </div>
+
+      <!-- Getting started -->
+      <div class="glass-card" style="padding:32px; margin-bottom:40px;">
+        <h3 style="font-size:1.1rem; color:var(--gold); margin-bottom:16px;">Getting started</h3>
+        <p style="color:var(--fg-muted); font-size:0.9rem; margin-bottom:12px;">
+          Pay <strong style="color:var(--fg);">£3.99</strong> once. That's it. Half funds the app, half buys your first sats — your inscription balance. Each upload costs sats based on data size: a single page might cost a few thousand sats, a multi-page document costs more. Your sats, your choice how you spend them.
+        </p>
+        <p style="color:var(--fg-muted); font-size:0.9rem;">
+          Need more? Top up sats anytime. You fund your own inscriptions — the platform never takes from your earnings. Bigger documents cost more to inscribe, but they can also earn more. The market prices itself. No subscription. No monthly fees. No catch.
+        </p>
+      </div>
+
+      <!-- Revenue projections -->
+      <h3 style="font-size:1.1rem; color:var(--gold); margin-bottom:8px; text-align:center;">What a single upload could earn</h3>
+      <p style="text-align:center; color:var(--fg-muted); font-size:0.85rem; margin-bottom:4px;">3p per unlock · you keep 80% = £0.024 each time</p>
+
+      <table class="rev-table">
+        <thead>
+          <tr><th style="text-align:left">Unlocks</th><th>Total Revenue</th><th>You Earn (80%)</th><th>curIosities (10%)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1,000</td><td>£30</td><td>£24</td><td>£3</td></tr>
+          <tr><td>10,000</td><td>£300</td><td>£240</td><td>£30</td></tr>
+          <tr><td>100,000</td><td>£3,000</td><td>£2,400</td><td>£300</td></tr>
+          <tr class="highlight"><td>1,000,000</td><td>£30,000</td><td>£24,000</td><td>£3,000</td></tr>
+          <tr class="highlight"><td>10,000,000</td><td>£300,000</td><td>£240,000</td><td>£30,000</td></tr>
+        </tbody>
+      </table>
+
+      <div class="glass-card-lt" style="padding:24px; text-align:center; margin-top:24px;">
+        <p style="font-size:0.9rem; color:var(--fg-muted);">
+          And remember — you're earning in <strong style="color:var(--gold);">BSV</strong>. Fixed supply, 21 million coins. If BSV appreciates over the coming years, every royalty you've ever earned appreciates with it. That £240,000 is at <em>today's</em> prices.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="sep"></div>
+
+  <!-- Vision — AI & Discovery -->
+  <section id="vision">
+    <div class="container">
+      <h2 style="text-align:center; font-size:clamp(1.8rem,4vw,2.5rem); background:linear-gradient(135deg,var(--gold),hsl(40 20% 85%)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+        What happens when the archive grows
+      </h2>
+      <p style="text-align:center; color:var(--fg-muted); max-width:640px; margin:16px auto 0; font-size:1rem;">
+        Every document makes the archive smarter. AI doesn't just read one letter — it cross-references millions.
+      </p>
+
+      <div class="vision-grid">
+        <div class="vision-card glass-card-lt">
+          <div class="icon">🔍</div>
+          <h3>Solve mysteries</h3>
+          <p>A letter mentions a name. A factory ledger lists the same name. A photograph shows the same street. AI connects dots across families, cities, and decades that no human researcher could.</p>
+        </div>
+        <div class="vision-card glass-card-lt">
+          <div class="icon">🌳</div>
+          <h3>Fill in family trees</h3>
+          <p>The handwritten family bible. The back of a photo that says "Uncle Arthur, Blackpool, 1923." The letter mentioning "your cousin Margaret who moved to Canada." That's the stuff that fills the gaps.</p>
+        </div>
+        <div class="vision-card glass-card-lt">
+          <div class="icon">🎬</div>
+          <h3>Power documentaries</h3>
+          <p>Imagine a filmmaker searching "HMS Hood crew letters" and finding 40 original documents uploaded by descendants across three countries. Every unlock pays the families who preserved them.</p>
+        </div>
+        <div class="vision-card glass-card-lt">
+          <div class="icon">🤖</div>
+          <h3>Train AI on real history</h3>
+          <p>AI companies are desperate for unique, authentic training data. The curIosities archive is irreplaceable — handwritten, one-of-a-kind, impossible to scrape. Every crawl generates micropayments to uploaders.</p>
+        </div>
+        <div class="vision-card glass-card-lt">
+          <div class="icon">🏫</div>
+          <h3>Bring classrooms to life</h3>
+          <p>"Everyone search for something from your town during the Blitz." Kids looking at real documents from real people. Every student who opens a page pays the family who uploaded it.</p>
+        </div>
+        <div class="vision-card glass-card-lt">
+          <div class="icon">🧩</div>
+          <h3>Reconstruct lost worlds</h3>
+          <p>One upload from Liverpool. Another from Sheffield. A third from Glasgow. Individually they're fragments. Together, cross-referenced by AI, they reconstruct communities that no museum ever assembled.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Today is tomorrow's history -->
+  <section id="living" style="padding: 100px 0;">
+    <div class="container">
+
+      <div style="text-align:center; margin-bottom:56px;">
+        <div style="display:inline-block; padding:6px 18px; border-radius:100px; font-size:0.72rem; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; background:hsl(42 95% 60% / 0.08); border:1px solid hsl(42 95% 60% / 0.2); color:hsl(42 95% 65%); margin-bottom:24px;">
+          The expanded vision
+        </div>
+        <h2 style="font-size:clamp(2rem,5vw,3.2rem); font-weight:800; background:linear-gradient(135deg,var(--gold),hsl(40 20% 85%)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:20px; line-height:1.15;">
+          Today is tomorrow's history.
+        </h2>
+        <p style="font-size:1.1rem; color:var(--fg-muted); max-width:660px; margin:0 auto; line-height:1.75;">
+          curIosities was born from old attics and forgotten drawers. But history isn't only made in the past. Every ordinary moment happening right now is an artefact in waiting — and the people living it are the only ones who can preserve it.
+        </p>
+      </div>
+
+      <!-- The expanded pitch -->
+      <div class="glass-card" style="padding:48px 40px; margin-bottom:48px; border-color:hsl(42 88% 55% / 0.18); background:linear-gradient(135deg, rgba(20,14,8,0.97), rgba(30,20,8,0.94));">
+        <p style="font-size:1.05rem; color:hsl(40 20% 80%); line-height:1.85; margin-bottom:20px;">
+          A fireman photographs his crew — <em>Blue Watch, 2026</em>. Today it's just a team photo. In fifty years, it's a historical document. Someone's grandchild searches for it. A documentary maker finds it. A historian studying emergency services in the 2020s unlocks it. And the people in that photo — or their families — get paid every single time.
+        </p>
+        <p style="font-size:1.05rem; color:hsl(40 20% 80%); line-height:1.85; margin-bottom:20px;">
+          Nobody thinks of themselves as a historian while they're living their life. But they are. The nurse photographing her ward team on the last day of a hospital being demolished. The factory worker documenting the final shift before a plant closes. The schoolteacher uploading her class photo every September. The regiment photographed before deployment. The pub landlord capturing his regulars on closing night. The kid photographing a town centre before the developers move in.
+        </p>
+        <p style="font-size:1.05rem; color:var(--gold); line-height:1.85; font-weight:500;">
+          All of them are making history. curIosities makes sure they own it — and profit from it — forever.
+        </p>
+      </div>
+
+      <!-- Who uploads today -->
+      <h3 style="text-align:center; font-size:1rem; color:var(--fg-muted); letter-spacing:0.12em; text-transform:uppercase; font-family:'Inter',sans-serif; font-weight:500; margin-bottom:32px;">Who uploads today becomes history tomorrow</h3>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+
+        <div class="glass-card-lt" style="padding:22px 20px; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:10px;">🚒</div>
+          <p style="font-size:0.85rem; font-weight:600; color:hsl(40 20% 82%); margin-bottom:4px;">Emergency services</p>
+          <p style="font-size:0.78rem; color:var(--fg-muted);">Crews, watches, stations — the people who kept communities safe</p>
+        </div>
+
+        <div class="glass-card-lt" style="padding:22px 20px; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:10px;">🏫</div>
+          <p style="font-size:0.85rem; font-weight:600; color:hsl(40 20% 82%); margin-bottom:4px;">Schools & classrooms</p>
+          <p style="font-size:0.78rem; color:var(--fg-muted);">Class of 2026. Every year, a new document. Every child, a future searcher.</p>
+        </div>
+
+        <div class="glass-card-lt" style="padding:22px 20px; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:10px;">🏭</div>
+          <p style="font-size:0.85rem; font-weight:600; color:hsl(40 20% 82%); margin-bottom:4px;">Industry & trades</p>
+          <p style="font-size:0.78rem; color:var(--fg-muted);">The last shift. The closing day. The work that built communities.</p>
+        </div>
+
+        <div class="glass-card-lt" style="padding:22px 20px; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:10px;">⚽</div>
+          <p style="font-size:0.85rem; font-weight:600; color:hsl(40 20% 82%); margin-bottom:4px;">Sports clubs</p>
+          <p style="font-size:0.78rem; color:var(--fg-muted);">Sunday league, local heroes, the season they nearly won it.</p>
+        </div>
+
+        <div class="glass-card-lt" style="padding:22px 20px; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:10px;">🪖</div>
+          <p style="font-size:0.85rem; font-weight:600; color:hsl(40 20% 82%); margin-bottom:4px;">Military</p>
+          <p style="font-size:0.78rem; color:var(--fg-muted);">Regiments, tours, the bonds forged in service.</p>
+        </div>
+
+        <div class="glass-card-lt" style="padding:22px 20px; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:10px;">🏘️</div>
+          <p style="font-size:0.85rem; font-weight:600; color:hsl(40 20% 82%); margin-bottom:4px;">Communities</p>
+          <p style="font-size:0.78rem; color:var(--fg-muted);">Streets, pubs, local events — the fabric of places before they change.</p>
+        </div>
+
+      </div>
+
+      <div class="glass-card-lt" style="padding:28px 32px; margin-top:40px; text-align:center; border-color:hsl(42 88% 55% / 0.15);">
+        <p style="font-size:0.95rem; color:var(--fg-muted); line-height:1.7;">
+          The archive doesn't just grow from the past. It grows from <strong style="color:hsl(40 20% 82%);">right now.</strong> Every upload made today is a primary source for someone living in 2075. curIosities is the only platform on earth where the people who make history also own it, index it, and earn from it — permanently, on-chain, without a middleman.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="sep"></div>
+
+  <!-- Quote -->
+  <section class="quote-section">
+    <div class="sep" style="margin-bottom:48px;"></div>
+    <blockquote>"Somewhere in an attic right now there's a letter that would rewrite a chapter of history. The person who owns it doesn't even know. curIosities makes sure they find out — and get paid for it."</blockquote>
+    <div class="sep" style="margin-top:48px;"></div>
+  </section>
+
+  <!-- Values -->
+  <section id="values">
+    <div class="container">
+      <h2 style="text-align:center; font-size:clamp(1.8rem,4vw,2.5rem); background:linear-gradient(135deg,var(--gold),hsl(40 20% 85%)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+        No dams. No gatekeepers.
+      </h2>
+      <p style="text-align:center; color:var(--fg-muted); max-width:560px; margin:16px auto 0; font-size:1rem;">
+        curIosities is built on principles, not profit extraction.
+      </p>
+
+      <div class="values-grid">
+        <div class="value-item glass-card-lt">
+          <div class="marker">⛓</div>
+          <div>
+            <h4>Truly decentralised</h4>
+            <p>Your documents live on the BSV blockchain, not on our servers. If curIosities disappeared tomorrow, your data and your royalty rights would still exist.</p>
+          </div>
+        </div>
+        <div class="value-item glass-card-lt">
+          <div class="marker">🛡</div>
+          <div>
+            <h4>You own your data</h4>
+            <p>No platform lock-in. No terms of service that secretly claim your content. You uploaded it, you own it, you earn from it. Full stop.</p>
+          </div>
+        </div>
+        <div class="value-item glass-card-lt">
+          <div class="marker">🔒</div>
+          <div>
+            <h4>Anti-pirate by design</h4>
+            <p>Every document is timestamped on-chain with provenance proof. If someone scrapes your upload, there's an immutable record showing you published it first.</p>
+          </div>
+        </div>
+        <div class="value-item glass-card-lt">
+          <div class="marker">👐</div>
+          <div>
+            <h4>Fair, not greedy</h4>
+            <p>80% to you. We take 10%. We're not money-hungry tyrants building the next data silo. We're history nerds who think you deserve to be paid for what's in your attic.</p>
+          </div>
+        </div>
+        <div class="value-item glass-card-lt">
+          <div class="marker">♾</div>
+          <div>
+            <h4>Generational wealth</h4>
+            <p>Royalties don't expire. Your grandchildren's grandchildren could still be earning from what you upload today. History compounds.</p>
+          </div>
+        </div>
+        <div class="value-item glass-card-lt">
+          <div class="marker">🌍</div>
+          <div>
+            <h4>Transparent treasury</h4>
+            <p>Every split, every transaction, every payout — settled on BSV and publicly auditable. No black boxes. No hidden fees. Just honest economics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <h2 class="brass-glow">Ready to open the vault?</h2>
+      <p>Start preserving history. Start earning forever.</p>
+      <a href="#" class="btn-gold orb-ring" style="font-size:1.1rem; padding:18px 48px;">Open the Cabinet — £3.99</a>
+      <p style="color:var(--fg-muted); font-size:0.8rem; margin-top:16px;">One-time fee · Sats included · No subscription</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div style="display:flex; justify-content:center; margin-bottom:10px;">
+      <svg width="175" height="26" viewBox="0 0 175 26" overflow="visible">
+        <defs>
+          <linearGradient id="gf" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#5c3e10"/>
+            <stop offset="30%"  stop-color="#a07028"/>
+            <stop offset="60%"  stop-color="#7a5520"/>
+            <stop offset="100%" stop-color="#8a6220"/>
+          </linearGradient>
+          <filter id="ff" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b1"/>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b2"/>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b3"/>
+            <feMerge><feMergeNode in="b3"/><feMergeNode in="b2"/><feMergeNode in="b1"/></feMerge>
+          </filter>
+        </defs>
+        <text x="2" y="19" font-family="'Playfair Display',Georgia,serif" font-size="16" font-weight="800" fill="none" filter="url(#ff)">
+          <tspan>cur</tspan><tspan fill="#18d4b0" font-size="20">io</tspan><tspan>sities</tspan>
+        </text>
+        <text x="2" y="19" font-family="'Playfair Display',Georgia,serif" font-size="16" font-weight="800" fill="url(#gf)">
+          cur<tspan font-size="20">io</tspan>sities
+        </text>
+      </svg>
+    </div>
+    <p>The Digital Cabinet of Curiosities · History on Bitcoin SV</p>
+    <p style="margin-top:12px;">
+      <a href="#">Legal</a> &nbsp;·&nbsp; <a href="#">Treasury</a> &nbsp;·&nbsp; <a href="#">Contact</a>
+    </p>
+    <p style="margin-top:16px; font-size:0.7rem; color:hsl(222 10% 35%);">
+      © 2026 curIosities. Documents live on-chain forever. So do royalties.
+    </p>
+  </footer>
+
+  <script>
+    // Scroll-spy: highlight nav link for the section currently in view
+    (() => {
+      const links = document.querySelectorAll('nav .links a[href^="#"]');
+      const sections = [...links].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          const link = document.querySelector(`nav .links a[href="#${id}"]`);
+          if (!link) return;
+          if (entry.isIntersecting) {
+            links.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+          }
+        });
+      }, {
+        rootMargin: '-40% 0px -55% 0px',
+        threshold: 0
+      });
+
+      sections.forEach(s => observer.observe(s));
+    })();
+  </script>
+
+</body>
+</html>
