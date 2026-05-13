@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,26 @@ serve(async (req) => {
   }
 
   try {
+    // Require authenticated user — AI calls cost money.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    );
+    const { data: userData, error: userErr } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { imageUrl, category, title, description } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -18,7 +39,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    console.log('Analyzing document:', { title, category });
+    console.log('Analyzing document:', { title, category, userId: userData.user.id });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -70,9 +91,7 @@ Be generous for genuinely rare documents. Common items: 20-40, Uncommon: 50-70, 
               },
               {
                 type: 'image_url',
-                image_url: {
-                  url: imageUrl
-                }
+                image_url: { url: imageUrl }
               }
             ]
           }
@@ -86,34 +105,12 @@ Be generous for genuinely rare documents. Common items: 20-40, Uncommon: 50-70, 
               parameters: {
                 type: "object",
                 properties: {
-                  rarity_score: {
-                    type: "integer",
-                    minimum: 1,
-                    maximum: 100,
-                    description: "How rare and unique this document is historically"
-                  },
-                  usefulness_score: {
-                    type: "integer",
-                    minimum: 1,
-                    maximum: 100,
-                    description: "How useful and valuable this document is for research/education"
-                  },
-                  price_per_page: {
-                    type: "number",
-                    description: "Suggested price per page in BSV satoshis (0.00000001 to 1.0)"
-                  },
-                  analysis: {
-                    type: "string",
-                    description: "Detailed explanation of the scores and historical significance"
-                  },
-                  estimated_pages: {
-                    type: "integer",
-                    description: "Estimated number of pages in this document"
-                  },
-                  teaser: {
-                    type: "string",
-                    description: "Short 1-2 sentence teaser written to entice a stranger to unlock the document. Hint at the content without revealing it. Human, surprising, and impossible to ignore."
-                  }
+                  rarity_score: { type: "integer", minimum: 1, maximum: 100 },
+                  usefulness_score: { type: "integer", minimum: 1, maximum: 100 },
+                  price_per_page: { type: "number" },
+                  analysis: { type: "string" },
+                  estimated_pages: { type: "integer" },
+                  teaser: { type: "string" }
                 },
                 required: ["rarity_score", "usefulness_score", "price_per_page", "analysis", "estimated_pages", "teaser"],
                 additionalProperties: false
@@ -133,14 +130,9 @@ Be generous for genuinely rare documents. Common items: 20-40, Uncommon: 50-70, 
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-
-    if (!toolCall) {
-      throw new Error('No tool call in response');
-    }
+    if (!toolCall) throw new Error('No tool call in response');
 
     const result = JSON.parse(toolCall.function.arguments);
-    console.log('Analysis complete:', result);
-
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -148,13 +140,8 @@ Be generous for genuinely rare documents. Common items: 20-40, Uncommon: 50-70, 
   } catch (error) {
     console.error('Error in analyze-document:', error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
