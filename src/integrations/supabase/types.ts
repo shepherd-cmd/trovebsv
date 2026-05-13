@@ -140,6 +140,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -223,10 +230,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "royalties_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "royalties_reader_id_fkey"
             columns: ["reader_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "royalties_reader_id_fkey"
+            columns: ["reader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -338,10 +359,43 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {
+      claim_pending_balance: {
+        Args: { new_identity: string; new_wallet_type: string; user_id: string }
+        Returns: number
+      }
+      credit_pending_balance: {
+        Args: { amount_bsv: number; user_id: string }
+        Returns: undefined
+      }
       increment_document_earnings: {
         Args: { amount: number; doc_id: string }
         Returns: undefined
