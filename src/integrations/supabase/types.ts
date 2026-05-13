@@ -19,7 +19,6 @@ export type Database = {
           amount_paid: number
           created_at: string
           document_id: string
-          gorilla_pool_share: number
           id: string
           owner_share: number
           platform_share: number
@@ -29,17 +28,15 @@ export type Database = {
           amount_paid: number
           created_at?: string
           document_id: string
-          gorilla_pool_share?: number
           id?: string
           owner_share: number
           platform_share: number
-          user_id?: string
+          user_id: string
         }
         Update: {
           amount_paid?: number
           created_at?: string
           document_id?: string
-          gorilla_pool_share?: number
           id?: string
           owner_share?: number
           platform_share?: number
