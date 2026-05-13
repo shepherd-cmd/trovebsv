@@ -19,7 +19,34 @@ serve(async (req) => {
   }
 
   try {
+    // Require authenticated caller and ensure they can only credit themselves.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    );
+    const { data: userData, error: userErr } = await authClient.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { packageId, userId } = await req.json();
+
+    if (userId && userId !== userData.user.id) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const targetUserId = userData.user.id;
 
     const pkg = CREDIT_PACKAGES[packageId as keyof typeof CREDIT_PACKAGES];
     if (!pkg) {
@@ -28,6 +55,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // TODO: Verify Stripe payment for this user before crediting.
+    // Until real payment verification is wired, this function should not credit
+    // accounts in production. Currently restricted to the authenticated caller only.
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
