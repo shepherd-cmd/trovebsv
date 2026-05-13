@@ -50,6 +50,13 @@ export type Database = {
             referencedRelation: "documents"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "document_unlocks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       documents: {
@@ -202,6 +209,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "royalties_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "royalties_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
@@ -249,7 +263,83 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      documents_public: {
+        Row: {
+          ai_analysis: Json | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          document_photos: Json | null
+          id: string | null
+          image_url: string | null
+          inscription_txid: string | null
+          owner_paymail: string | null
+          price_per_page: number | null
+          provenance_photos: Json | null
+          rarity_score: number | null
+          status: string | null
+          title: string | null
+          total_earnings: number | null
+          total_pages: number | null
+          updated_at: string | null
+          usefulness_score: number | null
+          user_id: string | null
+          view_count: number | null
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          document_photos?: Json | null
+          id?: string | null
+          image_url?: string | null
+          inscription_txid?: string | null
+          owner_paymail?: string | null
+          price_per_page?: number | null
+          provenance_photos?: Json | null
+          rarity_score?: number | null
+          status?: string | null
+          title?: string | null
+          total_earnings?: number | null
+          total_pages?: number | null
+          updated_at?: string | null
+          usefulness_score?: number | null
+          user_id?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          ai_analysis?: Json | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          document_photos?: Json | null
+          id?: string | null
+          image_url?: string | null
+          inscription_txid?: string | null
+          owner_paymail?: string | null
+          price_per_page?: number | null
+          provenance_photos?: Json | null
+          rarity_score?: number | null
+          status?: string | null
+          title?: string | null
+          total_earnings?: number | null
+          total_pages?: number | null
+          updated_at?: string | null
+          usefulness_score?: number | null
+          user_id?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       increment_document_earnings: {
